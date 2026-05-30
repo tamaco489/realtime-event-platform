@@ -4,16 +4,21 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"os"
 
-	api "github.com/tamaco489/realtime-event-platform/backend/internal/handler/api"
+	"github.com/tamaco489/realtime-event-platform/backend/internal/handler/api"
+	"github.com/tamaco489/realtime-event-platform/backend/internal/library/config"
 	"github.com/tamaco489/realtime-event-platform/backend/internal/library/producer"
 )
 
 func main() {
 	ctx := context.Background()
 
-	p, err := producer.NewProducer(ctx)
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	p, err := producer.NewProducer(ctx, cfg.App.Env, cfg.Producer.QueueURL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -21,10 +26,9 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("POST /events", api.NewHandler(p))
 
-	port, serviceName := os.Getenv("APP_PORT"), os.Getenv("API_SERVICE_NAME")
-	log.Printf("service=%s started on :%s", serviceName, port)
+	log.Printf("service=%s started on :%s", cfg.App.ServiceName, cfg.App.Port)
 
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := http.ListenAndServe(":"+cfg.App.Port, mux); err != nil {
 		log.Println(err)
 	}
 }
