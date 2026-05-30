@@ -1,6 +1,6 @@
 BUILD_OPTS = GOOS=linux GOARCH=arm64 CGO_ENABLED=0
 
-.PHONY: fmt lint mod build build-api build-event verify
+.PHONY: fmt lint mod build build-api build-event verify test
 fmt:
 	go fmt ./...
 
@@ -14,7 +14,10 @@ build: mod
 lint:
 	golangci-lint run ./...
 
-verify: build lint
+test:
+	go test ./... -race -v
+
+verify: build lint test
 
 
 .PHONY: up down logs
