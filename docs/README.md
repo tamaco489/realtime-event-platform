@@ -12,7 +12,7 @@ Eliminates polling by delivering real-time push notifications to the frontend vi
 | Layer          | Technology                                        |
 | -------------- | ------------------------------------------------- |
 | Frontend       | Vite (SPA) / React / TypeScript / aws-amplify v6  |
-| Backend API    | Go / ECS Fargate / ALB                            |
+| Backend API    | Go / API Gateway / Lambda                         |
 | Backend Lambda | Go / SQS trigger / AppSync Mutation               |
 | Messaging      | Amazon EventBridge / Amazon SQS (with DLQ)        |
 | Realtime Push  | AWS AppSync (GraphQL Subscription over WebSocket) |
@@ -27,8 +27,8 @@ realtime-event-platform/
 │   └── src/
 │
 ├── backend/
-│   ├── api/                     # Go API server (ECS Fargate)
-│   │   ├── cmd/server/          # Server entrypoint
+│   ├── api/                     # Go Lambda (API Gateway)
+│   │   ├── cmd/lambda/          # Lambda entrypoint
 │   │   ├── internal/
 │   │   │   ├── handler/         # HTTP handlers
 │   │   │   └── usecase/         # Business logic
@@ -53,17 +53,16 @@ realtime-event-platform/
 
 ### Prerequisites
 
-- Go 1.23+ (managed via [asdf](https://asdf-vm.com/))
-- Node.js 22.x (managed via asdf)
+- Go 1.26.3 (managed via [asdf](https://asdf-vm.com/))
+- Node.js 24.x (managed via asdf)
 - AWS CDK CLI (`npm install -g aws-cdk`)
-- Docker (for local development)
 - AWS CLI (configured with appropriate credentials)
 
 ### Backend API
 
 ```bash
 cd backend/api
-make up
+make build
 ```
 
 ### Backend Lambda
