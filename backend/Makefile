@@ -1,9 +1,15 @@
 BUILD_OPTS = GOOS=linux GOARCH=arm64 CGO_ENABLED=0
 
-.PHONY: up fmt lint mod test build build-api build-event verify
+.PHONY: up down logs fmt lint mod test build build-api build-event verify
 
 up:
-	go run ./cmd/api
+	docker compose up -d api
+
+down:
+	docker compose down api
+
+logs:
+	docker compose logs -f api
 
 fmt:
 	go fmt ./...
