@@ -1,0 +1,24 @@
+package config
+
+import (
+	"fmt"
+
+	"github.com/caarlos0/env/v11"
+)
+
+type EventConfig struct {
+	App EventAppConfig
+}
+
+type EventAppConfig struct {
+	Env         Environment `env:"APP_ENV,required,notEmpty"`
+	ServiceName string      `env:"EVENT_SERVICE_NAME,required,notEmpty"`
+}
+
+func EventLoad() (*EventConfig, error) {
+	cfg, err := env.ParseAs[EventConfig]()
+	if err != nil {
+		return nil, fmt.Errorf("parse event config: %w", err)
+	}
+	return &cfg, nil
+}

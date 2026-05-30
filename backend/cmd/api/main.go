@@ -13,7 +13,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	cfg, err := config.Load()
+	cfg, err := config.APILoad()
 	if err != nil {
 		log.Fatal(err)
 	}
