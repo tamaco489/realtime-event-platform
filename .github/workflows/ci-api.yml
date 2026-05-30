@@ -1,4 +1,4 @@
-name: CI - API Lambda
+name: CI - API
 
 on:
   push:
