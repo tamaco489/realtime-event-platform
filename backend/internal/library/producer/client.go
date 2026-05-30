@@ -1,4 +1,4 @@
-package sqs
+package producer
 
 import (
 	"context"
@@ -9,15 +9,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
-type publisher struct {
+type producer struct {
 	client   *sqs.Client
 	queueURL string
 }
 
-func NewPublisher(ctx context.Context) (Publisher, error) {
+func NewProducer(ctx context.Context) (Producer, error) {
 	if os.Getenv("APP_ENV") == "local" {
-		log.Println("sqs publisher: running in mock mode")
-		return &mockPublisher{}, nil
+		log.Println("sqs producer: running in mock mode")
+		return &mock{}, nil
 	}
 
 	cfg, err := config.LoadDefaultConfig(ctx)
@@ -25,7 +25,7 @@ func NewPublisher(ctx context.Context) (Publisher, error) {
 		return nil, err
 	}
 
-	return &publisher{
+	return &producer{
 		client:   sqs.NewFromConfig(cfg),
 		queueURL: os.Getenv("SQS_QUEUE_URL"),
 	}, nil

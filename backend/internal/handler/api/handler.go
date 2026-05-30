@@ -3,13 +3,13 @@ package api
 import (
 	"net/http"
 
-	"github.com/tamaco489/realtime-event-platform/backend/internal/library/sqs"
+	"github.com/tamaco489/realtime-event-platform/backend/internal/library/producer"
 )
 
-type Handler struct{ publisher sqs.Publisher }
+type Handler struct{ producer producer.Producer }
 
-func NewHandler(publisher sqs.Publisher) *Handler {
-	return &Handler{publisher: publisher}
+func NewHandler(p producer.Producer) *Handler {
+	return &Handler{producer: p}
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {}
