@@ -4,12 +4,24 @@ on:
   push:
     branches: [main]
     paths:
-      - "backend/**"
+      - "backend/cmd/event/**"
+      - "backend/internal/handler/event/**"
+      - "backend/internal/library/**"
+      - "backend/go.mod"
+      - "backend/go.sum"
+      - "backend/Makefile"
+      - "backend/.golangci.yml"
       - ".github/workflows/ci-event.yml"
   pull_request:
     branches: [main]
     paths:
-      - "backend/**"
+      - "backend/cmd/event/**"
+      - "backend/internal/handler/event/**"
+      - "backend/internal/library/**"
+      - "backend/go.mod"
+      - "backend/go.sum"
+      - "backend/Makefile"
+      - "backend/.golangci.yml"
       - ".github/workflows/ci-event.yml"
 
 concurrency:
