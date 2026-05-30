@@ -8,5 +8,7 @@ import (
 func main() {
 	mux := http.NewServeMux()
 	fmt.Println("api server started on :8080")
-	http.ListenAndServe(":8080", mux)
+	if err := http.ListenAndServe(":8080", mux); err != nil {
+		fmt.Println(err)
+	}
 }
