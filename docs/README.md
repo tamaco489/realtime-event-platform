@@ -5,7 +5,26 @@
 ## Overview
 
 Reference implementation of an event-driven architecture using AWS AppSync Subscription.
-Eliminates polling by delivering real-time push notifications to the frontend via EventBridge → SQS → Lambda → AppSync Mutation.
+Eliminates polling by delivering real-time push notifications to the frontend via SQS → Lambda → AppSync Mutation.
+
+## Architecture
+
+```text
+Browser (React)
+  │  GraphQL Subscription (WebSocket)
+  ▼
+AppSync ◄─── AppSync Mutation
+                    ▲
+             Event Lambda (Go)
+                    ▲
+                  SQS (+ DLQ)
+                    ▲
+             API Lambda (Go)
+                    ▲
+            API Gateway (REST)
+                    ▲
+              Browser (REST)
+```
 
 ## Tech Stack
 
@@ -14,7 +33,7 @@ Eliminates polling by delivering real-time push notifications to the frontend vi
 | Frontend       | Vite (SPA) / React / TypeScript / aws-amplify v6  |
 | Backend API    | Go / API Gateway / Lambda                         |
 | Backend Lambda | Go / SQS trigger / AppSync Mutation               |
-| Messaging      | Amazon EventBridge / Amazon SQS (with DLQ)        |
+| Messaging      | Amazon SQS (with DLQ)                             |
 | Realtime Push  | AWS AppSync (GraphQL Subscription over WebSocket) |
 | Infra          | AWS CDK (TypeScript)                              |
 | CI/CD          | GitHub Actions                                    |
@@ -23,20 +42,28 @@ Eliminates polling by delivering real-time push notifications to the frontend vi
 
 ```text
 realtime-event-platform/
-├── frontend/                    # Vite + React + TypeScript
+├── frontend/                    # Vite + React + TypeScript (FSD)
 │   └── src/
+│       ├── app/                 # Providers, router, global config
+│       ├── pages/               # Page components
+│       ├── widgets/             # Composite UI blocks
+│       ├── features/            # Feature slices (events/, auth/)
+│       └── shared/              # Shared utils, GraphQL codegen
 │
-├── backend/
-│   ├── api/                     # Go Lambda (API Gateway)
-│   │   ├── cmd/lambda/          # Lambda entrypoint
-│   │   ├── internal/
-│   │   │   ├── handler/         # HTTP handlers
-│   │   │   └── usecase/         # Business logic
-│   │   └── Makefile
-│   │
-│   └── lambda/                  # Go Lambda (SQS → AppSync Mutation)
-│       ├── cmd/handler/         # Lambda entrypoint
-│       └── internal/
+├── backend/                     # Go Lambda — unified module
+│   ├── cmd/
+│   │   ├── api/main.go          # API Lambda entrypoint
+│   │   └── event/main.go        # Event Lambda entrypoint
+│   ├── internal/
+│   │   ├── handler/
+│   │   │   ├── api/             # REST handler → publisher
+│   │   │   └── event/           # SQS handler → notifier
+│   │   ├── library/
+│   │   │   ├── publisher/       # SQS SendMessage client
+│   │   │   └── notifier/        # AppSync Mutation client
+│   │   └── types/
+│   ├── go.mod
+│   └── Makefile
 │
 ├── infra/                       # AWS CDK (TypeScript)
 │
@@ -53,23 +80,17 @@ realtime-event-platform/
 
 ### Prerequisites
 
-- Go 1.26.3 (managed via [asdf](https://asdf-vm.com/))
+- Go 1.24.x (managed via [asdf](https://asdf-vm.com/))
 - Node.js 24.x (managed via asdf)
 - AWS CDK CLI (`npm install -g aws-cdk`)
 - AWS CLI (configured with appropriate credentials)
 
-### Backend API
+### Backend
 
 ```bash
-cd backend/api
-make build
-```
-
-### Backend Lambda
-
-```bash
-cd backend/lambda
-make build
+cd backend
+make build-api    # build API Lambda binary
+make build-event  # build Event Lambda binary
 ```
 
 ### Frontend
