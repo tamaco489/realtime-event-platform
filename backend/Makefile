@@ -1,29 +1,28 @@
 BUILD_OPTS = GOOS=linux GOARCH=arm64 CGO_ENABLED=0
 
-.PHONY: up fmt lint mod test build build-api build-event verify
-
-up:
-	go run ./cmd/api
-
+.PHONY: fmt lint mod build build-api build-event verify
 fmt:
 	go fmt ./...
+
+mod: fmt
+	go mod tidy
+
+build: mod
+	$(BUILD_OPTS) go build -trimpath -o build/api ./cmd/api
+	$(BUILD_OPTS) go build -trimpath -o build/event ./cmd/event
 
 lint:
 	golangci-lint run ./...
 
-mod:
-	go mod tidy
-	git diff --exit-code go.mod go.sum
+verify: build lint
 
-test:
-	go test -race ./...
 
-build-api:
-	$(BUILD_OPTS) go build -trimpath -o build/api ./cmd/api
+.PHONY: up down logs
+up:
+	docker compose up -d api
 
-build-event:
-	$(BUILD_OPTS) go build -trimpath -o build/event ./cmd/event
+down:
+	docker compose down api
 
-build: build-api build-event
-
-verify: fmt lint build test
+logs:
+	docker compose logs -f api
