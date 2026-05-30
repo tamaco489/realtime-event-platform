@@ -7,12 +7,17 @@ import (
 )
 
 type EventConfig struct {
-	App EventAppConfig
+	App   EventAppConfig
+	Store StoreConfig
 }
 
 type EventAppConfig struct {
 	Env         Environment `env:"APP_ENV,required,notEmpty"`
 	ServiceName string      `env:"EVENT_SERVICE_NAME,required,notEmpty"`
+}
+
+type StoreConfig struct {
+	TableName string `env:"DYNAMODB_TABLE_NAME"`
 }
 
 func EventLoad() (*EventConfig, error) {
