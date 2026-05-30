@@ -1,0 +1,15 @@
+services:
+  api:
+    platform: linux/amd64
+    image: golang:1.26.3-alpine
+    container_name: realtime_event_api
+    working_dir: /go/src/github.com/tamaco489/realtime-event-platform/backend
+    volumes:
+      - ./:/go/src/github.com/tamaco489/realtime-event-platform/backend
+      - ~/.cache/go-build:/root/.cache/go-build
+    ports:
+      - "18080:8080"
+    env_file:
+      - .env
+    command: >
+      sh -c "go mod download && go install github.com/air-verse/air@latest && air -c .air.toml"
