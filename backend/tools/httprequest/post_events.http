@@ -22,3 +22,29 @@ Content-Type: application/json
     "name": "tamaco"
   }
 }
+
+###
+# POST /events — 異常系: event_type が空
+POST {{baseUrl}}/events
+Content-Type: application/json
+
+{
+  "event_type": "",
+  "payload": {}
+}
+
+###
+# POST /events — 異常系: event_type が欠落
+POST {{baseUrl}}/events
+Content-Type: application/json
+
+{
+  "payload": {}
+}
+
+###
+# POST /events — 異常系: 不正な JSON ボディ
+POST {{baseUrl}}/events
+Content-Type: application/json
+
+{ invalid json }
