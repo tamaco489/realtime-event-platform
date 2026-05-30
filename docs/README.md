@@ -9,22 +9,7 @@ Eliminates polling by delivering real-time push notifications to the frontend vi
 
 ## Architecture
 
-```text
-Browser (React)
-  │  GraphQL Subscription (WebSocket)
-  ▼
-AppSync ◄─── AppSync Mutation
-                    ▲
-             Event Lambda (Go)
-                    ▲
-                  SQS (+ DLQ)
-                    ▲
-             API Lambda (Go)
-                    ▲
-            API Gateway (REST)
-                    ▲
-              Browser (REST)
-```
+![Architecture](architecture.svg)
 
 ## Tech Stack
 
