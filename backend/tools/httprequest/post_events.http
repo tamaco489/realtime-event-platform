@@ -1,0 +1,24 @@
+@baseUrl = http://localhost:18080
+
+###
+# POST /events — 正常系: 標準的なイベント送信
+POST {{baseUrl}}/events
+Content-Type: application/json
+
+{
+  "event_type": "test",
+  "payload": {}
+}
+
+###
+# POST /events — 正常系: payload にデータを含む
+POST {{baseUrl}}/events
+Content-Type: application/json
+
+{
+  "event_type": "user.created",
+  "payload": {
+    "user_id": "u-001",
+    "name": "tamaco"
+  }
+}
