@@ -9,7 +9,7 @@
 例:
 
 ```text
-[backend-api] [issue-10] [feat] EventBridge へのイベント Publish 処理を追加
+[backend] [issue-10] [feat] EventBridge へのイベント Publish 処理を追加
 ```
 
 | 要素       | 説明                                                                          |
