@@ -40,6 +40,7 @@ export class ApiLambda extends Construct {
     const role = new iam.Role(this, "Role", {
       roleName: `${props.envName}-realtime-event-api-lambda-role`,
       assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+      // ref: https://docs.aws.amazon.com/ja_jp/aws-managed-policy/latest/reference/AWSLambdaBasicExecutionRole.html
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName(
           "service-role/AWSLambdaBasicExecutionRole",
@@ -60,6 +61,9 @@ export class ApiLambda extends Construct {
       ),
       role,
       memorySize: props.lambdaMemorySize,
+      // HTTP API (v2) の統合タイムアウト上限は 30 秒のため、1 秒のバッファを設けて 29 秒に設定する
+      // @see https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-quotas.html
+      // > Maximum integration timeout | 30 seconds
       timeout: cdk.Duration.seconds(29),
       environment: {
         SQS_QUEUE_URL: props.queue.queueUrl,
