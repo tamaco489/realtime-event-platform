@@ -38,7 +38,7 @@ export class ApiLambda extends Construct {
   constructor(scope: Construct, id: string, props: ApiLambdaProps) {
     super(scope, id);
 
-    // Lambda 実行 Role
+    // Lambda Execution Role - Lambda が API Gateway から呼び出されるための基本的な実行ロールを作成
     const role = new iam.Role(this, "Role", {
       roleName: `${props.envName}-realtime-event-api-lambda-role`,
       assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
@@ -50,7 +50,7 @@ export class ApiLambda extends Construct {
       ],
     });
 
-    // Lambda 関数
+    // Lambda Function - HTTP サーバーとして実装された Go バイナリを Lambda で動かすための Web Adapter をレイヤーで追加
     this.fn = new lambda.Function(this, "Function", {
       functionName: `${props.envName}-realtime-event-api`,
       description:
@@ -69,6 +69,15 @@ export class ApiLambda extends Construct {
         "artifacts/api/bootstrap.zip",
       ),
       role,
+      // HTTP サーバーとして実装された Go バイナリを Lambda で動かすための Web Adapter
+      // ref: https://github.com/awslabs/aws-lambda-web-adapter
+      layers: [
+        lambda.LayerVersion.fromLayerVersionArn(
+          this,
+          "LambdaWebAdapterLayer",
+          "arn:aws:lambda:ap-northeast-1:753240598075:layer:LambdaAdapterLayerArm64:24",
+        ),
+      ],
       memorySize: props.lambdaMemorySize,
       // HTTP API (v2) の統合タイムアウト上限は 30 秒のため、1 秒のバッファを設けて 29 秒に設定する
       // @see https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-quotas.html
@@ -76,13 +85,17 @@ export class ApiLambda extends Construct {
       timeout: cdk.Duration.seconds(29),
       environment: {
         SQS_QUEUE_URL: props.queue.queueUrl,
+        APP_ENV: props.envName,
+        // Lambda Web Adapter のデフォルト転送先ポートと一致させる
+        APP_PORT: "8080",
+        API_SERVICE_NAME: `${props.envName}-realtime-event-api`,
       },
     });
 
     // Lambda の IAM Role に SQS SendMessage 権限を付与
     props.queue.grantSendMessages(this.fn);
 
-    // HTTP API
+    // HTTP API (v2) を Lambda と統合して作成
     this.httpApi = new apigwv2.HttpApi(this, "HttpApi", {
       apiName: `${props.envName}-realtime-event-http-api`,
       description: "HTTP API for the realtime event delivery platform",
@@ -92,6 +105,7 @@ export class ApiLambda extends Construct {
       ),
     });
 
+    // API Gateway のエンドポイント URL を CloudFormation Stack Output に出力
     new cdk.CfnOutput(scope, "ApiEndpointUrl", {
       value: this.httpApi.apiEndpoint,
       description: "API Gateway HTTP API endpoint URL",

@@ -13,7 +13,7 @@ exports[`snapshot 1`] = `
       },
     },
     "AppSyncApiKey": {
-      "Description": "AppSync API キー",
+      "Description": "AppSync API key",
       "Value": {
         "Fn::GetAtt": [
           "AppSyncApiDefaultApiKey4C5F84B8",
@@ -22,7 +22,7 @@ exports[`snapshot 1`] = `
       },
     },
     "AppSyncUrl": {
-      "Description": "AppSync GraphQL エンドポイント URL",
+      "Description": "AppSync GraphQL endpoint URL",
       "Value": {
         "Fn::GetAtt": [
           "AppSyncApiEBDAEC17",
@@ -76,6 +76,9 @@ exports[`snapshot 1`] = `
         "Description": "Receives HTTP requests via API Gateway and publishes events to SQS",
         "Environment": {
           "Variables": {
+            "API_SERVICE_NAME": "dev-realtime-event-api",
+            "APP_ENV": "dev",
+            "APP_PORT": "8080",
             "SQS_QUEUE_URL": {
               "Ref": "SqsQueueB359A2D7",
             },
@@ -83,6 +86,9 @@ exports[`snapshot 1`] = `
         },
         "FunctionName": "dev-realtime-event-api",
         "Handler": "bootstrap",
+        "Layers": [
+          "arn:aws:lambda:ap-northeast-1:753240598075:layer:LambdaAdapterLayerArm64:24",
+        ],
         "MemorySize": 128,
         "Role": {
           "Fn::GetAtt": [
@@ -269,6 +275,46 @@ exports[`snapshot 1`] = `
         "Name": "dev-realtime-event-api",
       },
       "Type": "AWS::AppSync::GraphQLApi",
+    },
+    "AppSyncApiNoneDataSourceCC553A95": {
+      "Properties": {
+        "ApiId": {
+          "Fn::GetAtt": [
+            "AppSyncApiEBDAEC17",
+            "ApiId",
+          ],
+        },
+        "Name": "devrealtimeeventnoneds",
+        "Type": "NONE",
+      },
+      "Type": "AWS::AppSync::DataSource",
+    },
+    "AppSyncApiPublishEventResolverE8D8B0A6": {
+      "DependsOn": [
+        "AppSyncApiNoneDataSourceCC553A95",
+        "AppSyncApiSchemaD3A1C979",
+      ],
+      "Properties": {
+        "ApiId": {
+          "Fn::GetAtt": [
+            "AppSyncApiEBDAEC17",
+            "ApiId",
+          ],
+        },
+        "Code": "
+        export function request(ctx) { return { payload: ctx.args.input }; }
+        export function response(ctx) { return ctx.result; }
+      ",
+        "DataSourceName": "devrealtimeeventnoneds",
+        "FieldName": "publishEvent",
+        "Kind": "UNIT",
+        "Runtime": {
+          "Name": "APPSYNC_JS",
+          "RuntimeVersion": "1.0.0",
+        },
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
     },
     "AppSyncApiSchemaD3A1C979": {
       "Properties": {
