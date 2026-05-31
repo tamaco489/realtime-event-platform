@@ -24,26 +24,39 @@ type eventMessage struct {
 	EventType string         `json:"event_type"`
 }
 
-func (h *Handler) Handle(ctx context.Context, sqsEvent events.SQSEvent) error {
+func (h *Handler) Handle(ctx context.Context, sqsEvent events.SQSEvent) (events.SQSEventResponse, error) {
 	log.Printf("event handler invoked: records=%d", len(sqsEvent.Records))
+
+	var resp events.SQSEventResponse
+
 	for _, record := range sqsEvent.Records {
-		var msg eventMessage
-		if err := json.Unmarshal([]byte(record.Body), &msg); err != nil {
-			log.Printf("skip: failed to parse record: message_id=%s err=%v", record.MessageId, err)
-			continue
+		if err := h.processRecord(ctx, record); err != nil {
+			log.Printf("failure: message_id=%s err=%v", record.MessageId, err)
+			// 失敗レコードの messageId を BatchItemFailures に積む
+			// SQS はこのリストを見て該当レコードのみ再試行し、maxReceiveCount を超えたものだけ DLQ に移動する
+			resp.BatchItemFailures = append(resp.BatchItemFailures, events.SQSBatchItemFailure{
+				ItemIdentifier: record.MessageId,
+			})
 		}
-
-		if err := h.store.PutEvent(ctx, msg.EventType, msg.Payload); err != nil {
-			log.Printf("skip: failed to put event: message_id=%s err=%v", record.MessageId, err)
-			continue
-		}
-
-		if err := h.notifier.PublishEvent(ctx, msg.EventType, msg.Payload); err != nil {
-			log.Printf("skip: failed to publish event: message_id=%s err=%v", record.MessageId, err)
-			continue
-		}
-
-		log.Printf("processed: message_id=%s event_type=%s", record.MessageId, msg.EventType)
 	}
+
+	return resp, nil
+}
+
+func (h *Handler) processRecord(ctx context.Context, record events.SQSMessage) error {
+	var msg eventMessage
+	if err := json.Unmarshal([]byte(record.Body), &msg); err != nil {
+		return err
+	}
+
+	if err := h.store.PutEvent(ctx, msg.EventType, msg.Payload); err != nil {
+		return err
+	}
+
+	if err := h.notifier.PublishEvent(ctx, msg.EventType, msg.Payload); err != nil {
+		return err
+	}
+
+	log.Printf("processed: message_id=%s event_type=%s", record.MessageId, msg.EventType)
 	return nil
 }
