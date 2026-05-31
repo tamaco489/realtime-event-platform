@@ -58,16 +58,16 @@ upload-event:
 
 upload: upload-api upload-event
 
-deploy-api:
+deploy-api: upload-api
 	aws lambda update-function-code \
 		--function-name $(ENV)-realtime-event-api \
 		--s3-bucket $(S3_BUCKET) \
 		--s3-key artifacts/api/bootstrap.zip \
-		--profile $(AWS_PROFILE)
+		--profile $(AWS_PROFILE) | jq .
 
-deploy-event:
+deploy-event: upload-event
 	aws lambda update-function-code \
 		--function-name $(ENV)-realtime-event-event \
 		--s3-bucket $(S3_BUCKET) \
 		--s3-key artifacts/event/bootstrap.zip \
-		--profile $(AWS_PROFILE)
+		--profile $(AWS_PROFILE) | jq .
