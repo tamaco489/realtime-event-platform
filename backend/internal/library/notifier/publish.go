@@ -59,8 +59,8 @@ func (n *notifier) PublishEvent(ctx context.Context, eventType string, payload m
 		return err
 	}
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Println(err)
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			log.Println(closeErr)
 		}
 	}()
 
