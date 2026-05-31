@@ -2,12 +2,21 @@ import * as cdk from "aws-cdk-lib";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import { Construct } from "constructs";
 
-/** SqsQueue コンストラクタプロパティ */
+/**
+ * SqsQueue コンストラクタプロパティ
+ *
+ * @property envName - 環境名。リソースの命名に使用する
+ */
 interface SqsQueueProps {
   readonly envName: string;
 }
 
-/** SQS main queue + DLQ construct */
+/**
+ * SQS メインキュー + DLQ コンストラクト
+ *
+ * 3 回処理失敗したメッセージを DLQ に移動する。
+ * メインキュー URL と DLQ ARN を Stack Output に出力する。
+ */
 export class SqsQueue extends Construct {
   /** main queue */
   readonly queue: sqs.Queue;
