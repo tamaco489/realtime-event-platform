@@ -1,5 +1,5 @@
 {
-  "enabledMcpjsonServers": ["context7"],
+  "enabledMcpjsonServers": ["context7", "playwright"],
   "permissions": {
     "allow": [
       "Bash(git *)",
@@ -9,7 +9,28 @@
       "mcp__github__issue_read",
       "mcp__github__issue_write",
       "mcp__github__add_issue_comment",
-      "mcp__github__get_me"
+      "mcp__github__get_me",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_network_requests",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_tabs",
+      "mcp__playwright__browser_close",
+      "mcp__awslabs-cloudwatch__describe_log_groups",
+      "mcp__awslabs-cloudwatch__execute_log_insights_query",
+      "mcp__awslabs-cloudwatch__execute_cwl_insights_batch",
+      "mcp__awslabs-cloudwatch__get_active_alarms",
+      "mcp__awslabs-cloudwatch__get_metric_data",
+      "mcp__awslabs-cloudwatch__analyze_log_group",
+      "mcp__awslabs-cloudwatch__analyze_metric",
+      "mcp__awslabs-lambda-tool__prd_realtime_event_api",
+      "mcp__awslabs-lambda-tool__prd_realtime_event_event"
     ]
   }
 }

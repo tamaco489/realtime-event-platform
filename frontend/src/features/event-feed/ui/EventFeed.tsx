@@ -13,22 +13,34 @@ export function EventFeed() {
   const { error } = useEventSubscription();
 
   if (error) {
-    return <p role="alert">Subscription エラー: {error}</p>;
+    return (
+      <p role="alert" className="text-red-400 text-sm">
+        Subscription エラー: {error}
+      </p>
+    );
   }
 
   return (
-    <ul>
+    <div className="flex flex-col gap-3 max-h-96 overflow-y-auto">
       {events.length === 0 ? (
-        <li>イベントを待機中...</li>
+        <p className="text-gray-400 text-sm text-center py-8">イベントを待機中...</p>
       ) : (
         events.map((event) => (
-          <li key={event.event_id}>
-            <strong>{event.event_type}</strong>
-            <span>{new Date(event.created_at * 1000).toLocaleString()}</span>
-            <pre>{event.payload}</pre>
-          </li>
+          <div key={event.event_id} className="bg-gray-700 rounded-lg p-3 flex flex-col gap-1">
+            <div className="flex items-center justify-between">
+              <span className="text-indigo-400 font-mono text-sm font-semibold">
+                {event.event_type}
+              </span>
+              <span className="text-gray-400 text-xs">
+                {new Date(event.created_at * 1000).toLocaleString()}
+              </span>
+            </div>
+            <pre className="text-gray-300 text-xs font-mono whitespace-pre-wrap break-all">
+              {event.payload}
+            </pre>
+          </div>
         ))
       )}
-    </ul>
+    </div>
   );
 }

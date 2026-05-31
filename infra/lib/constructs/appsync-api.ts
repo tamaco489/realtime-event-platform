@@ -54,7 +54,14 @@ export class AppSyncApi extends Construct {
       // *.js は .gitignore 対象のため fromInline でインライン定義する
       code: appsync.Code.fromInline(`
         export function request(ctx) { return { payload: ctx.args.input }; }
-        export function response(ctx) { return ctx.result; }
+        export function response(ctx) {
+          return {
+            event_id: util.autoId(),
+            event_type: ctx.result.event_type,
+            payload: ctx.result.payload,
+            created_at: util.time.nowEpochSeconds(),
+          };
+        }
       `),
       runtime: appsync.FunctionRuntime.JS_1_0_0,
     });

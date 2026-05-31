@@ -5,16 +5,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 )
 
-// TODO: AppSync スキーマ (schema.graphql) 確定後、mutation 名・PublishEventInput 型・レスポンスフィールドを合わせて修正する
-const publishEventMutation = `mutation PublishEvent($input: PublishEventInput!) { publishEvent(input: $input) { eventType } }`
+const publishEventMutation = `mutation PublishEvent($input: PublishEventInput!) { publishEvent(input: $input) { event_id event_type payload created_at } }`
 
 type publishEventInput struct {
-	Payload   map[string]any `json:"payload"`
-	EventType string         `json:"eventType"`
+	Payload   string `json:"payload"`
+	EventType string `json:"event_type"`
 }
 
 type publishVariables struct {
@@ -27,11 +27,16 @@ type graphQLRequest struct {
 }
 
 func (n *notifier) PublishEvent(ctx context.Context, eventType string, payload map[string]any) error {
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("appsync: failed to marshal payload: %w", err)
+	}
+
 	reqBody := graphQLRequest{
 		Query: publishEventMutation,
 		Variables: publishVariables{
 			Input: publishEventInput{
-				Payload:   payload,
+				Payload:   string(payloadJSON),
 				EventType: eventType,
 			},
 		},
@@ -54,13 +59,32 @@ func (n *notifier) PublishEvent(ctx context.Context, eventType string, payload m
 		return err
 	}
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Println(err)
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			log.Println(closeErr)
 		}
 	}()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("appsync: failed to read response body: %w", err)
+	}
+	log.Printf("appsync: status=%d body=%s", resp.StatusCode, string(respBody))
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("appsync: unexpected status %d", resp.StatusCode)
 	}
+
+	var gqlResp struct {
+		Errors []struct {
+			Message string `json:"message"`
+		} `json:"errors"`
+	}
+	if err := json.Unmarshal(respBody, &gqlResp); err != nil {
+		return fmt.Errorf("appsync: failed to parse response: %w", err)
+	}
+	if len(gqlResp.Errors) > 0 {
+		return fmt.Errorf("appsync: graphql error: %s", gqlResp.Errors[0].Message)
+	}
+
 	return nil
 }
