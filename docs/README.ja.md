@@ -51,6 +51,14 @@ realtime-event-platform/
 │   └── Makefile
 │
 ├── infra/                       # AWS CDK (TypeScript)
+│   ├── bin/app.ts               # CDK App エントリポイント — devConfig を渡してスタックをインスタンス化
+│   ├── lib/
+│   │   ├── stacks/              # スタック定義
+│   │   └── constructs/          # L3 カスタムコンストラクト (リソース単位で分割)
+│   ├── config/env-config.ts     # EnvConfig 型 + devConfig (stg/prd は定数を追加するだけ)
+│   ├── test/                    # CDK スナップショット / ユニットテスト (Jest)
+│   ├── cdk.json
+│   └── Makefile
 │
 ├── .github/
 │   ├── workflows/               # CI/CD ワークフロー
@@ -74,8 +82,12 @@ realtime-event-platform/
 
 ```bash
 cd backend
-make build-api    # API Lambda バイナリをビルド
-make build-event  # Event Lambda バイナリをビルド
+
+# API Lambda バイナリをビルド
+make build-api
+
+# Event Lambda バイナリをビルド
+make build-event
 ```
 
 ### フロントエンド
@@ -90,7 +102,20 @@ npm run dev
 
 ```bash
 cd infra
-cdk bootstrap   # 初回のみ
-cdk diff        # 変更内容の確認
-cdk deploy      # インフラ適用
+npm install
+
+# AWS SSO 認証 (トークン期限切れ時も再実行)
+aws sso login --profile <your-profile>
+
+# 初回のみ — AWS アカウントに CDK ツールキットをセットアップ
+make bootstrap AWS_PROFILE=<your-profile>
+
+# CloudFormation テンプレートの合成
+make synth AWS_PROFILE=<your-profile>
+
+# デプロイ済みスタックとの差分確認
+make diff AWS_PROFILE=<your-profile>
+
+# AWS へデプロイ
+make deploy AWS_PROFILE=<your-profile>
 ```
