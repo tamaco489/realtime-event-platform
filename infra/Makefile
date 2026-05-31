@@ -1,8 +1,11 @@
 AWS_PROFILE ?= default
 
-.PHONY: fmt lint test build
+.PHONY: fmt build lint test verify
 fmt:
 	npx prettier --write "**/*.ts"
+
+build: fmt
+	npm run build
 
 lint:
 	npx eslint "**/*.ts"
@@ -10,8 +13,7 @@ lint:
 test:
 	npm test
 
-build:
-	npm run build
+verify: build lint test
 
 
 .PHONY: synth diff deploy destroy
