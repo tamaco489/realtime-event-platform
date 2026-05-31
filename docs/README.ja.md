@@ -73,7 +73,7 @@ realtime-event-platform/
 
 ### 前提条件
 
-- Go 1.24.x ([asdf](https://asdf-vm.com/) で管理)
+- Go 1.26.x ([asdf](https://asdf-vm.com/) で管理)
 - Node.js 24.x (asdf で管理)
 - AWS CDK CLI (`npm install -g aws-cdk`)
 - AWS CLI (適切なクレデンシャルで設定済み)
@@ -118,4 +118,46 @@ make diff AWS_PROFILE=<your-profile>
 
 # AWS へデプロイ
 make deploy AWS_PROFILE=<your-profile>
+```
+
+## デプロイ
+
+Lambda のコード更新とインフラ変更は独立して管理する。
+
+### Lambda コードの更新
+
+CDK はインフラ定義のみを管理する。Lambda バイナリの更新は `backend/Makefile` のコマンドで行う。
+
+```bash
+cd backend
+
+# ビルド → S3 アップロード → Lambda 反映を一括実行
+make deploy-lambda AWS_PROFILE=<your-profile> ENV=<env>
+
+# 個別に実行する場合
+make upload-api AWS_PROFILE=<your-profile>    # API Lambda を S3 にアップロード
+make upload-event AWS_PROFILE=<your-profile>  # Event Lambda を S3 にアップロード
+make deploy-api AWS_PROFILE=<your-profile>    # API Lambda のコードを更新
+make deploy-event AWS_PROFILE=<your-profile>  # Event Lambda のコードを更新
+```
+
+アップロード先の S3 パス:
+
+```text
+{ENV}-realtime-event-storage/
+  └── artifacts/
+      ├── api/bootstrap.zip
+      └── event/bootstrap.zip
+```
+
+### インフラの更新
+
+CDK でリソース定義を変更した場合は `infra/Makefile` のコマンドで反映する。
+
+```bash
+cd infra
+
+# 変更内容を確認してからデプロイ
+make diff AWS_PROFILE=<your-profile> ENV=<env>
+make deploy AWS_PROFILE=<your-profile> ENV=<env>
 ```

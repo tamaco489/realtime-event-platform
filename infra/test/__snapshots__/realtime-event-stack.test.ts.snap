@@ -3,6 +3,15 @@
 exports[`snapshot 1`] = `
 {
   "Outputs": {
+    "ApiEndpointUrl": {
+      "Description": "API Gateway HTTP API endpoint URL",
+      "Value": {
+        "Fn::GetAtt": [
+          "ApiLambdaHttpApi7C050CBF",
+          "ApiEndpoint",
+        ],
+      },
+    },
     "AppSyncApiKey": {
       "Description": "AppSync API キー",
       "Value": {
@@ -51,6 +60,195 @@ exports[`snapshot 1`] = `
     },
   },
   "Resources": {
+    "ApiLambdaFunction8FC74655": {
+      "DependsOn": [
+        "ApiLambdaRoleDefaultPolicyABC51E92",
+        "ApiLambdaRole7F72345A",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": "dev-realtime-event-storage",
+          "S3Key": "artifacts/api/bootstrap.zip",
+        },
+        "Description": "Receives HTTP requests via API Gateway and publishes events to SQS",
+        "Environment": {
+          "Variables": {
+            "SQS_QUEUE_URL": {
+              "Ref": "SqsQueueB359A2D7",
+            },
+          },
+        },
+        "FunctionName": "dev-realtime-event-api",
+        "Handler": "bootstrap",
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "ApiLambdaRole7F72345A",
+            "Arn",
+          ],
+        },
+        "Runtime": "provided.al2023",
+        "Timeout": 29,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ApiLambdaHttpApi7C050CBF": {
+      "Properties": {
+        "Description": "HTTP API for the realtime event delivery platform",
+        "Name": "dev-realtime-event-http-api",
+        "ProtocolType": "HTTP",
+      },
+      "Type": "AWS::ApiGatewayV2::Api",
+    },
+    "ApiLambdaHttpApiDefaultRouteD338B959": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "ApiLambdaHttpApi7C050CBF",
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "$default",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "ApiLambdaHttpApiDefaultRouteIntegrationC1482DDF",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "ApiLambdaHttpApiDefaultRouteIntegrationC1482DDF": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "ApiLambdaHttpApi7C050CBF",
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "ApiLambdaFunction8FC74655",
+            "Arn",
+          ],
+        },
+        "PayloadFormatVersion": "2.0",
+      },
+      "Type": "AWS::ApiGatewayV2::Integration",
+    },
+    "ApiLambdaHttpApiDefaultRouteIntegrationPermission0078E4AC": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ApiLambdaFunction8FC74655",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              {
+                "Ref": "ApiLambdaHttpApi7C050CBF",
+              },
+              "/*/*",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "ApiLambdaHttpApiDefaultStage5899077A": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "ApiLambdaHttpApi7C050CBF",
+        },
+        "AutoDeploy": true,
+        "StageName": "$default",
+      },
+      "Type": "AWS::ApiGatewayV2::Stage",
+    },
+    "ApiLambdaRole7F72345A": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "RoleName": "dev-realtime-event-api-lambda-role",
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ApiLambdaRoleDefaultPolicyABC51E92": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "sqs:SendMessage",
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "SqsQueueB359A2D7",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "ApiLambdaRoleDefaultPolicyABC51E92",
+        "Roles": [
+          {
+            "Ref": "ApiLambdaRole7F72345A",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "AppSyncApiDefaultApiKey4C5F84B8": {
       "DependsOn": [
         "AppSyncApiSchemaD3A1C979",
@@ -68,7 +266,7 @@ exports[`snapshot 1`] = `
     "AppSyncApiEBDAEC17": {
       "Properties": {
         "AuthenticationType": "API_KEY",
-        "Name": "realtime-event-api-dev",
+        "Name": "dev-realtime-event-api",
       },
       "Type": "AWS::AppSync::GraphQLApi",
     },
@@ -119,7 +317,7 @@ schema {
       "Type": "AWS::AppSync::GraphQLSchema",
     },
     "DynamoDbTable6E8DC354": {
-      "DeletionPolicy": "Retain",
+      "DeletionPolicy": "Delete",
       "Properties": {
         "AttributeDefinitions": [
           {
@@ -134,16 +332,16 @@ schema {
             "KeyType": "HASH",
           },
         ],
-        "TableName": "realtime-event-table-dev",
+        "TableName": "dev-realtime-event-table",
       },
       "Type": "AWS::DynamoDB::Table",
-      "UpdateReplacePolicy": "Retain",
+      "UpdateReplacePolicy": "Delete",
     },
     "SqsQueueB359A2D7": {
       "DeletionPolicy": "Delete",
       "Properties": {
         "MessageRetentionPeriod": 259200,
-        "QueueName": "realtime-event-queue-dev",
+        "QueueName": "dev-realtime-event-queue",
         "RedrivePolicy": {
           "deadLetterTargetArn": {
             "Fn::GetAtt": [
@@ -162,7 +360,7 @@ schema {
       "DeletionPolicy": "Delete",
       "Properties": {
         "MessageRetentionPeriod": 604800,
-        "QueueName": "realtime-event-dlq-dev",
+        "QueueName": "dev-realtime-event-dlq",
       },
       "Type": "AWS::SQS::Queue",
       "UpdateReplacePolicy": "Delete",

@@ -29,13 +29,13 @@ export class SqsQueue extends Construct {
 
     // dlq
     this.dlq = new sqs.Queue(this, "Dlq", {
-      queueName: `realtime-event-dlq-${props.envName}`,
+      queueName: `${props.envName}-realtime-event-dlq`,
       retentionPeriod: cdk.Duration.days(7), // dlq のメッセージ保持期間
     });
 
     // main queue (dlq を関連付けて作成)
     this.queue = new sqs.Queue(this, "Queue", {
-      queueName: `realtime-event-queue-${props.envName}`,
+      queueName: `${props.envName}-realtime-event-queue`,
       visibilityTimeout: cdk.Duration.seconds(30), // Lambda 処理中に他のコンシューマーへ同一メッセージを渡さない時間
       retentionPeriod: cdk.Duration.days(3), // main queue のメッセージ保持期間
       deadLetterQueue: {

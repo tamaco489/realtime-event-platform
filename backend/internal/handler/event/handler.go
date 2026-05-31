@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/tamaco489/realtime-event-platform/backend/internal/library/notifier"
@@ -49,6 +50,9 @@ func (h *Handler) processRecord(ctx context.Context, record events.SQSMessage) e
 	if err := json.Unmarshal([]byte(record.Body), &msg); err != nil {
 		return err
 	}
+
+	// NOTE: イベントの処理に時間がかかるケースを想定して、敢えて Sleep で遅延させている
+	time.Sleep(3 * time.Second)
 
 	if err := h.store.PutEvent(ctx, msg.EventType, msg.Payload); err != nil {
 		return err

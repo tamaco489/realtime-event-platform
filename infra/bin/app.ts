@@ -10,22 +10,27 @@
  */
 import * as cdk from "aws-cdk-lib";
 import { RealtimeEventStack } from "../lib/stacks/realtime-event-stack";
-import { devConfig } from "../config/env-config";
+import { devConfig, prdConfig } from "../config/env-config";
 
 const app = new cdk.App();
 
-new RealtimeEventStack(app, `RealtimeEventStack-${devConfig.envName}`, {
+const config = process.env.ENV === "prd" ? prdConfig : devConfig;
+
+const envNamePascal =
+  config.envName.charAt(0).toUpperCase() + config.envName.slice(1);
+
+new RealtimeEventStack(app, `${envNamePascal}RealtimeEventStack`, {
   description: "Realtime event delivery platform based on AppSync Subscription",
   /**
    * cdk bootstrap 時に指定した qualifier と一致させる必要がある。
    * qualifier が異なると CDK bootstrap ロールの assume に失敗する。
    */
   synthesizer: new cdk.DefaultStackSynthesizer({
-    qualifier: devConfig.bootstrapQualifier,
+    qualifier: config.bootstrapQualifier,
   }),
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,
   },
-  config: devConfig,
+  config,
 });

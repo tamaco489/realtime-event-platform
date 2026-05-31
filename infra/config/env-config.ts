@@ -18,6 +18,9 @@ export interface EnvConfig {
 
   /** Lambda 関数のメモリサイズ (MB) */
   readonly lambdaMemorySize: number;
+
+  /** Lambda ビルド成果物を格納する S3 バケット名 */
+  readonly artifactsBucketName: string;
 }
 
 /** 開発環境設定 */
@@ -25,4 +28,13 @@ export const devConfig: EnvConfig = {
   envName: "dev",
   bootstrapQualifier: "tamaco489",
   lambdaMemorySize: 128,
+  artifactsBucketName: "dev-realtime-event-storage",
+};
+
+/** 本番環境設定 */
+export const prdConfig: EnvConfig = {
+  envName: "prd",
+  bootstrapQualifier: "tamaco489",
+  lambdaMemorySize: 128,
+  artifactsBucketName: "prd-realtime-event-storage",
 };
