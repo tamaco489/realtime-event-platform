@@ -1,11 +1,24 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
+/**
+ * GET リクエストを送信する
+ *
+ * @param path - ベース URL に結合するパス (例: `/events`)
+ * @returns レスポンスを T 型にパースした値
+ */
 export async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<T>;
 }
 
+/**
+ * JSON ボディで POST リクエストを送信する
+ *
+ * @param path - ベース URL に結合するパス (例: `/events`)
+ * @param body - リクエストボディ。JSON シリアライズして送信する
+ * @returns レスポンスを T 型にパースした値。ボディなし (202 等) の場合は undefined
+ */
 export async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
     method: "POST",
@@ -13,5 +26,6 @@ export async function post<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json() as Promise<T>;
+  const text = await res.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
