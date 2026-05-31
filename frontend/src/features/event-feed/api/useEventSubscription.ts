@@ -41,21 +41,28 @@ export function useEventSubscription(): { error: string | null } {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("[Subscription] 開始: onEventReceived");
+
     const observable = appSyncClient.graphql({
       query: ON_EVENT_RECEIVED,
     }) as unknown as SubscriptionObservable;
 
     const sub = observable.subscribe({
       next: ({ data }) => {
+        console.log("[Subscription] next:", JSON.stringify(data));
         const item = data?.onEventReceived;
         if (item) addEvent(item);
       },
       error: (err) => {
+        console.error("[Subscription] error:", err);
         setError(err instanceof Error ? err.message : "Subscription 接続に失敗しました");
       },
     });
 
-    return () => sub.unsubscribe();
+    return () => {
+      console.log("[Subscription] 終了");
+      sub.unsubscribe();
+    };
   }, [addEvent]);
 
   return { error };
