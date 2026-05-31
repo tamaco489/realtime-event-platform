@@ -7,8 +7,9 @@ import (
 )
 
 type EventConfig struct {
-	App   EventAppConfig
-	Store StoreConfig
+	App      EventAppConfig
+	Store    StoreConfig
+	Notifier NotifierConfig
 }
 
 type EventAppConfig struct {
@@ -18,6 +19,11 @@ type EventAppConfig struct {
 
 type StoreConfig struct {
 	TableName string `env:"DYNAMODB_TABLE_NAME"`
+}
+
+type NotifierConfig struct {
+	Endpoint string `env:"APPSYNC_ENDPOINT"`
+	APIKey   string `env:"APPSYNC_API_KEY"`
 }
 
 func EventLoad() (*EventConfig, error) {
