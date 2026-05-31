@@ -6,12 +6,17 @@ import (
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/tamaco489/realtime-event-platform/backend/internal/library/notifier"
+	"github.com/tamaco489/realtime-event-platform/backend/internal/library/store"
 )
 
-type Handler struct{}
+type Handler struct {
+	store    store.EventWriter
+	notifier notifier.EventPublisher
+}
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(s store.EventWriter, n notifier.EventPublisher) *Handler {
+	return &Handler{store: s, notifier: n}
 }
 
 type eventMessage struct {
@@ -27,7 +32,18 @@ func (h *Handler) Handle(ctx context.Context, sqsEvent events.SQSEvent) error {
 			log.Printf("skip: failed to parse record: message_id=%s err=%v", record.MessageId, err)
 			continue
 		}
-		log.Printf("message_id=%s event_type=%s payload=%v", record.MessageId, msg.EventType, msg.Payload)
+
+		if err := h.store.PutEvent(ctx, msg.EventType, msg.Payload); err != nil {
+			log.Printf("skip: failed to put event: message_id=%s err=%v", record.MessageId, err)
+			continue
+		}
+
+		if err := h.notifier.PublishEvent(ctx, msg.EventType, msg.Payload); err != nil {
+			log.Printf("skip: failed to publish event: message_id=%s err=%v", record.MessageId, err)
+			continue
+		}
+
+		log.Printf("processed: message_id=%s event_type=%s", record.MessageId, msg.EventType)
 	}
 	return nil
 }
