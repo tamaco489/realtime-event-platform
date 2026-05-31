@@ -28,7 +28,22 @@ func main() {
 
 	log.Printf("service=%s started on :%s", cfg.App.ServiceName, cfg.App.Port)
 
-	if err := http.ListenAndServe(":"+cfg.App.Port, mux); err != nil {
+	if err := http.ListenAndServe(":"+cfg.App.Port, corsMiddleware(mux)); err != nil {
 		log.Println(err)
 	}
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
