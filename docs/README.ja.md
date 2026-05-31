@@ -51,8 +51,7 @@ realtime-event-platform/
 │   │       ├── notifier/        # AppSync Mutation クライアント
 │   │       └── store/           # DynamoDB クライアント
 │   ├── tools/                   # ローカル開発ツール・テストイベント
-│   ├── go.mod
-│   └── Makefile
+│   └── go.mod
 │
 └── infra/                       # AWS CDK (TypeScript)
     ├── bin/app.ts               # CDK App エントリポイント
@@ -61,8 +60,7 @@ realtime-event-platform/
     │   └── constructs/          # L3 カスタムコンストラクト (リソース単位で分割)
     ├── config/env-config.ts     # EnvConfig 型 + 環境定数
     ├── test/                    # CDK スナップショット / ユニットテスト (Jest)
-    ├── cdk.json
-    └── Makefile
+    └── cdk.json
 ```
 
 ---
