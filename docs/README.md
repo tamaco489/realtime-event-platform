@@ -51,6 +51,14 @@ realtime-event-platform/
 │   └── Makefile
 │
 ├── infra/                       # AWS CDK (TypeScript)
+│   ├── bin/app.ts               # CDK App entrypoint — instantiates stack with devConfig
+│   ├── lib/
+│   │   ├── stacks/              # Stack definitions
+│   │   └── constructs/          # L3 custom constructs (one file per resource)
+│   ├── config/env-config.ts     # EnvConfig type + devConfig (add stg/prd as constants)
+│   ├── test/                    # CDK snapshot / unit tests (Jest)
+│   ├── cdk.json
+│   └── Makefile
 │
 ├── .github/
 │   ├── workflows/               # CI/CD workflows
@@ -74,8 +82,12 @@ realtime-event-platform/
 
 ```bash
 cd backend
-make build-api    # build API Lambda binary
-make build-event  # build Event Lambda binary
+
+# Build API Lambda binary
+make build-api
+
+# Build Event Lambda binary
+make build-event
 ```
 
 ### Frontend
@@ -90,7 +102,20 @@ npm run dev
 
 ```bash
 cd infra
-cdk bootstrap   # first time only
-cdk diff        # preview changes
-cdk deploy      # apply changes
+npm install
+
+# Authenticate with AWS SSO (re-run when token expires)
+aws sso login --profile <your-profile>
+
+# First time only — sets up CDK toolkit in AWS account
+make bootstrap AWS_PROFILE=<your-profile>
+
+# Synthesize CloudFormation template
+make synth AWS_PROFILE=<your-profile>
+
+# Preview changes against deployed stack
+make diff AWS_PROFILE=<your-profile>
+
+# Deploy to AWS
+make deploy AWS_PROFILE=<your-profile>
 ```
