@@ -37,6 +37,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var payloadMap map[string]interface{}
+	if err := json.Unmarshal(req.Payload, &payloadMap); err != nil || len(payloadMap) == 0 {
+		writeJSONError(w, "payload must not be empty", http.StatusBadRequest)
+		return
+	}
+
 	body, err := json.Marshal(req)
 	if err != nil {
 		writeJSONError(w, "failed to marshal request", http.StatusInternalServerError)

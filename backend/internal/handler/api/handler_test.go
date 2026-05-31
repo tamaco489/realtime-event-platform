@@ -28,7 +28,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		wantStatus  int
 	}{
 		"正常系_有効なリクエスト": {
-			body:       `{"event_type":"test","payload":{}}`,
+			body:       `{"event_type":"test","payload":{"key":"value"}}`,
 			wantStatus: http.StatusAccepted,
 		},
 		"正常系_payload_にデータを含む": {
@@ -50,8 +50,18 @@ func TestHandler_ServeHTTP(t *testing.T) {
 			wantStatus: http.StatusBadRequest,
 			wantError:  "event_type is required",
 		},
+		"異常系_payload_が空": {
+			body:       `{"event_type":"test","payload":{}}`,
+			wantStatus: http.StatusBadRequest,
+			wantError:  "payload must not be empty",
+		},
+		"異常系_payload_が欠落": {
+			body:       `{"event_type":"test"}`,
+			wantStatus: http.StatusBadRequest,
+			wantError:  "payload must not be empty",
+		},
 		"異常系_SQS_送信エラー": {
-			body:        `{"event_type":"test","payload":{}}`,
+			body:        `{"event_type":"test","payload":{"key":"value"}}`,
 			producerErr: errors.New("sqs error"),
 			wantStatus:  http.StatusInternalServerError,
 			wantError:   "failed to send message",
