@@ -84,7 +84,7 @@ export class EventLambda extends Construct {
     // cdk.json の useCdkManagedLogGroup が自動生成したロググループに保持期間 7 日とスタック削除ポリシーを設定する
     const managedLogGroup = this.fn.node.findChild("LogGroup") as logs.LogGroup;
     (managedLogGroup.node.defaultChild as logs.CfnLogGroup).retentionInDays = 7;
-    managedLogGroup.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    managedLogGroup.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY); // スタック削除時にテーブルも削除する (本番運用時は RETAIN 推奨)
 
     // DynamoDB テーブルへの書き込み権限を付与
     props.table.grantWriteData(this.fn);
