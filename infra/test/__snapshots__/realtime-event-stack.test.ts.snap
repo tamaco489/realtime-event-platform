@@ -73,8 +73,9 @@ exports[`snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "1ebc9d3ac2033816c4abb63e4afd69d350b4aba8704cc9236b82ea520b74f4b0.zip",
+          "S3Key": "94614a41e469092fa86a2e3b2dc2642a48284c3260a7729aee059fe7c1027a7f.zip",
         },
+        "Description": "Receives HTTP requests via API Gateway and publishes events to SQS",
         "Environment": {
           "Variables": {
             "SQS_QUEUE_URL": {
@@ -98,6 +99,7 @@ exports[`snapshot 1`] = `
     },
     "ApiLambdaHttpApi7C050CBF": {
       "Properties": {
+        "Description": "HTTP API for the realtime event delivery platform",
         "Name": "dev-realtime-event-http-api",
         "ProtocolType": "HTTP",
       },
