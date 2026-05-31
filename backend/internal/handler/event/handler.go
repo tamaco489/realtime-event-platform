@@ -32,8 +32,9 @@ func (h *Handler) Handle(ctx context.Context, sqsEvent events.SQSEvent) (events.
 	for _, record := range sqsEvent.Records {
 		if err := h.processRecord(ctx, record); err != nil {
 			log.Printf("failure: message_id=%s err=%v", record.MessageId, err)
-			// 失敗レコードの messageId を BatchItemFailures に積む
-			// SQS はこのリストを見て該当レコードのみ再試行し、maxReceiveCount を超えたものだけ DLQ に移動する
+			// パーシャルバッチ失敗: 失敗レコードの messageId だけを BatchItemFailures に積む
+			// SQS はこのリストを見て失敗レコードのみ再試行し、成功レコードはキューから削除する
+			// 再試行が maxReceiveCount を超えたレコードだけ DLQ に移動する
 			resp.BatchItemFailures = append(resp.BatchItemFailures, events.SQSBatchItemFailure{
 				ItemIdentifier: record.MessageId,
 			})
