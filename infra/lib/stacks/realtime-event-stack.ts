@@ -1,6 +1,8 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
+
 import { EnvConfig } from "../../config/env-config";
+import { AppSyncApi } from "../constructs/appsync-api";
 
 /**
  * RealtimeEventStack のコンストラクタプロパティ
@@ -21,5 +23,9 @@ interface RealtimeEventStackProps extends cdk.StackProps {
 export class RealtimeEventStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RealtimeEventStackProps) {
     super(scope, id, props);
+
+    new AppSyncApi(this, "AppSyncApi", {
+      envName: props.config.envName,
+    });
   }
 }
