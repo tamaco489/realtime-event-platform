@@ -4,6 +4,7 @@ import { Construct } from "constructs";
 import { EnvConfig } from "../../config/env-config";
 import { ApiLambda } from "../constructs/api-lambda";
 import { AppSyncApi } from "../constructs/appsync-api";
+import { CloudFrontS3 } from "../constructs/cloudfront-s3";
 import { DynamoDbTable } from "../constructs/dynamodb-table";
 import { EventLambda } from "../constructs/event-lambda";
 import { SqsQueue } from "../constructs/sqs-queue";
@@ -20,7 +21,6 @@ interface RealtimeEventStackProps extends cdk.StackProps {
 /**
  * リアルタイムイベント配信プラットフォームのメインスタック
  *
- * PoC フェーズは単一スタックで全リソースを管理する。
  * 本番移行時に stateful (DynamoDB / SQS) と stateless (Lambda / AppSync) に分割する。
  * 各リソースは lib/constructs/ 配下の L3 カスタムコンストラクトに分割して組み立てる。
  */
@@ -56,6 +56,10 @@ export class RealtimeEventStack extends cdk.Stack {
       appSyncApiKey: appSyncApi.api.apiKey ?? "",
       lambdaMemorySize: props.config.lambdaMemorySize,
       artifactsBucketName: props.config.artifactsBucketName,
+    });
+
+    new CloudFrontS3(this, "CloudFrontS3", {
+      envName: props.config.envName,
     });
   }
 }
