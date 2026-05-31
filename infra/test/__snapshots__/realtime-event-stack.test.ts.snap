@@ -21,6 +21,21 @@ exports[`snapshot 1`] = `
         ],
       },
     },
+    "SqsDlqArn": {
+      "Description": "SQS dead letter queue ARN",
+      "Value": {
+        "Fn::GetAtt": [
+          "SqsQueueDlq1151B914",
+          "Arn",
+        ],
+      },
+    },
+    "SqsQueueUrl": {
+      "Description": "SQS main queue URL",
+      "Value": {
+        "Ref": "SqsQueueB359A2D7",
+      },
+    },
   },
   "Parameters": {
     "BootstrapVersion": {
@@ -96,6 +111,34 @@ schema {
 ",
       },
       "Type": "AWS::AppSync::GraphQLSchema",
+    },
+    "SqsQueueB359A2D7": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "MessageRetentionPeriod": 259200,
+        "QueueName": "realtime-event-queue-dev",
+        "RedrivePolicy": {
+          "deadLetterTargetArn": {
+            "Fn::GetAtt": [
+              "SqsQueueDlq1151B914",
+              "Arn",
+            ],
+          },
+          "maxReceiveCount": 3,
+        },
+        "VisibilityTimeout": 30,
+      },
+      "Type": "AWS::SQS::Queue",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "SqsQueueDlq1151B914": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "MessageRetentionPeriod": 604800,
+        "QueueName": "realtime-event-dlq-dev",
+      },
+      "Type": "AWS::SQS::Queue",
+      "UpdateReplacePolicy": "Delete",
     },
   },
   "Rules": {

@@ -3,6 +3,7 @@ import { Construct } from "constructs";
 
 import { EnvConfig } from "../../config/env-config";
 import { AppSyncApi } from "../constructs/appsync-api";
+import { SqsQueue } from "../constructs/sqs-queue";
 
 /**
  * RealtimeEventStack のコンストラクタプロパティ
@@ -25,6 +26,10 @@ export class RealtimeEventStack extends cdk.Stack {
     super(scope, id, props);
 
     new AppSyncApi(this, "AppSyncApi", {
+      envName: props.config.envName,
+    });
+
+    new SqsQueue(this, "SqsQueue", {
       envName: props.config.envName,
     });
   }
