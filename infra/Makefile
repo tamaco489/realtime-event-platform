@@ -1,4 +1,5 @@
 AWS_PROFILE ?= default
+ENV ?= dev
 
 .PHONY: fmt build lint test verify
 fmt:
@@ -18,16 +19,16 @@ verify: build lint test
 
 .PHONY: synth diff deploy destroy
 synth: build
-	AWS_PROFILE=$(AWS_PROFILE) npx cdk synth
+	ENV=$(ENV) AWS_PROFILE=$(AWS_PROFILE) npx cdk synth
 
 diff: build
-	AWS_PROFILE=$(AWS_PROFILE) npx cdk diff
+	ENV=$(ENV) AWS_PROFILE=$(AWS_PROFILE) npx cdk diff
 
 deploy: build
-	AWS_PROFILE=$(AWS_PROFILE) npx cdk deploy
+	ENV=$(ENV) AWS_PROFILE=$(AWS_PROFILE) npx cdk deploy
 
 destroy:
-	AWS_PROFILE=$(AWS_PROFILE) npx cdk destroy --force
+	ENV=$(ENV) AWS_PROFILE=$(AWS_PROFILE) npx cdk destroy --force
 
 
 .PHONY: bootstrap
