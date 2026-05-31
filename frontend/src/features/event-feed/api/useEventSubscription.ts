@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { appSyncClient } from "@shared/api/appsync";
 
-import { type EventItem, useEventFeedStore } from "../model/store";
+import { type EventItem, useEventFeedStore } from "@features/event-feed/model/store";
 
 const ON_EVENT_RECEIVED = /* GraphQL */ `
   subscription OnEventReceived {

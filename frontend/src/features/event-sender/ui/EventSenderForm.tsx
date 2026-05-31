@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { postEvents } from "../api";
+import { postEvents } from "@features/event-sender/api";
 
 /**
  * イベント送信フォームコンポーネント

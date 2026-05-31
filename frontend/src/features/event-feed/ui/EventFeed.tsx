@@ -1,5 +1,5 @@
-import { useEventSubscription } from "../api";
-import { useEventFeedStore } from "../model/store";
+import { useEventSubscription } from "@features/event-feed/api";
+import { useEventFeedStore } from "@features/event-feed/model/store";
 
 /**
  * リアルタイムイベントフィードコンポーネント
