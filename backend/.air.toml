@@ -4,8 +4,8 @@ tmp_dir = "tmp"
 
 [build]
   args_bin = []
-  bin = "./build/bootstrap"
-  cmd = "go build -o ./build/bootstrap ./cmd/api"
+  bin = "./build/api/bootstrap"
+  cmd = "go build -o ./build/api/bootstrap ./cmd/api"
   delay = 3
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []
