@@ -29,7 +29,7 @@ export class AppSyncApi extends Construct {
     super(scope, id);
 
     this.api = new appsync.GraphqlApi(this, "Api", {
-      name: `realtime-event-api-${props.envName}`,
+      name: `${props.envName}-realtime-event-api`,
       // __dirname (このファイルと同階層) の schema.graphql を cdk synth 時にインライン展開する
       definition: appsync.Definition.fromFile(
         path.join(__dirname, "schema.graphql"),

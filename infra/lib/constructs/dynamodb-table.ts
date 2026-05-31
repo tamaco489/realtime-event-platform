@@ -23,10 +23,10 @@ export class DynamoDbTable extends Construct {
     super(scope, id);
 
     this.table = new dynamodb.Table(this, "Table", {
-      tableName: `realtime-event-table-${props.envName}`,
+      tableName: `${props.envName}-realtime-event-table`,
       partitionKey: { name: "event_id", type: dynamodb.AttributeType.STRING }, // パーティションキーは event_id (UUID 文字列) 固定
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: cdk.RemovalPolicy.RETAIN, // スタック削除時もテーブルを保持する
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // スタック削除時にテーブルも削除する (本番運用時は RETAIN 推奨)
     });
 
     new cdk.CfnOutput(scope, "DynamoDbTableName", {
