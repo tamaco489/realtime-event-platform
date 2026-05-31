@@ -41,14 +41,34 @@ export class AppSyncApi extends Construct {
       },
     });
 
-    new cdk.CfnOutput(scope, "AppSyncUrl", {
-      value: this.api.graphqlUrl,
-      description: "AppSync GraphQL エンドポイント URL",
+    // addNoneDataSource を使うことで type: NONE を明示。外部データソースを持たず Subscription へのパススルーのみを担う
+    const noneDS = this.api.addNoneDataSource("NoneDataSource", {
+      name: `${props.envName}-realtime-event-none-ds`,
+      description: "Passthrough data source for publishEvent mutation",
     });
 
+    // Mutation.publishEvent のリクエストマッピングテンプレートとレスポンスマッピングテンプレートを JS で定義する
+    noneDS.createResolver("PublishEventResolver", {
+      typeName: "Mutation",
+      fieldName: "publishEvent",
+      // *.js は .gitignore 対象のため fromInline でインライン定義する
+      code: appsync.Code.fromInline(`
+        export function request(ctx) { return { payload: ctx.args.input }; }
+        export function response(ctx) { return ctx.result; }
+      `),
+      runtime: appsync.FunctionRuntime.JS_1_0_0,
+    });
+
+    // AppSync のエンドポイント URL と API キーを CloudFormation Stack Output に出力
+    new cdk.CfnOutput(scope, "AppSyncUrl", {
+      value: this.api.graphqlUrl,
+      description: "AppSync GraphQL endpoint URL",
+    });
+
+    // API キーはデフォルトで 7 日間有効。期限切れ前に再デプロイすれば新しいキーが発行される設計
     new cdk.CfnOutput(scope, "AppSyncApiKey", {
       value: this.api.apiKey ?? "",
-      description: "AppSync API キー",
+      description: "AppSync API key",
     });
   }
 }
