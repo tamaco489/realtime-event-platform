@@ -149,15 +149,3 @@ S3 upload paths:
       ├── api/bootstrap.zip
       └── event/bootstrap.zip
 ```
-
-### Infrastructure Update
-
-When CDK resource definitions change, apply them via `infra/Makefile`.
-
-```bash
-cd infra
-
-# Review changes before deploying
-make diff AWS_PROFILE=<your-profile> ENV=<env>
-make deploy AWS_PROFILE=<your-profile> ENV=<env>
-```
