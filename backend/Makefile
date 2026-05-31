@@ -13,8 +13,8 @@ mod: fmt
 	go mod tidy
 
 build: mod
-	$(BUILD_OPTS) go build -trimpath -o build/api ./cmd/api
-	$(BUILD_OPTS) go build -trimpath -o build/event ./cmd/event
+	$(BUILD_OPTS) go build -trimpath -o build/api/bootstrap ./cmd/api
+	$(BUILD_OPTS) go build -trimpath -o build/event/bootstrap ./cmd/event
 
 lint:
 	golangci-lint run ./...
