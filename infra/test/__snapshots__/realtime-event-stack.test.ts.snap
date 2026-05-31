@@ -68,7 +68,7 @@ exports[`snapshot 1`] = `
     "AppSyncApiEBDAEC17": {
       "Properties": {
         "AuthenticationType": "API_KEY",
-        "Name": "realtime-event-api-dev",
+        "Name": "dev-realtime-event-api",
       },
       "Type": "AWS::AppSync::GraphQLApi",
     },
@@ -119,7 +119,7 @@ schema {
       "Type": "AWS::AppSync::GraphQLSchema",
     },
     "DynamoDbTable6E8DC354": {
-      "DeletionPolicy": "Retain",
+      "DeletionPolicy": "Delete",
       "Properties": {
         "AttributeDefinitions": [
           {
@@ -134,16 +134,16 @@ schema {
             "KeyType": "HASH",
           },
         ],
-        "TableName": "realtime-event-table-dev",
+        "TableName": "dev-realtime-event-table",
       },
       "Type": "AWS::DynamoDB::Table",
-      "UpdateReplacePolicy": "Retain",
+      "UpdateReplacePolicy": "Delete",
     },
     "SqsQueueB359A2D7": {
       "DeletionPolicy": "Delete",
       "Properties": {
         "MessageRetentionPeriod": 259200,
-        "QueueName": "realtime-event-queue-dev",
+        "QueueName": "dev-realtime-event-queue",
         "RedrivePolicy": {
           "deadLetterTargetArn": {
             "Fn::GetAtt": [
@@ -162,7 +162,7 @@ schema {
       "DeletionPolicy": "Delete",
       "Properties": {
         "MessageRetentionPeriod": 604800,
-        "QueueName": "realtime-event-dlq-dev",
+        "QueueName": "dev-realtime-event-dlq",
       },
       "Type": "AWS::SQS::Queue",
       "UpdateReplacePolicy": "Delete",

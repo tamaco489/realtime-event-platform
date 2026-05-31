@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 import { EnvConfig } from "../../config/env-config";
+import { ApiLambda } from "../constructs/api-lambda";
 import { AppSyncApi } from "../constructs/appsync-api";
 import { DynamoDbTable } from "../constructs/dynamodb-table";
 import { SqsQueue } from "../constructs/sqs-queue";
@@ -30,12 +31,18 @@ export class RealtimeEventStack extends cdk.Stack {
       envName: props.config.envName,
     });
 
-    new SqsQueue(this, "SqsQueue", {
+    const sqsQueue = new SqsQueue(this, "SqsQueue", {
       envName: props.config.envName,
     });
 
     new DynamoDbTable(this, "DynamoDbTable", {
       envName: props.config.envName,
+    });
+
+    new ApiLambda(this, "ApiLambda", {
+      envName: props.config.envName,
+      queue: sqsQueue.queue,
+      lambdaMemorySize: props.config.lambdaMemorySize,
     });
   }
 }
