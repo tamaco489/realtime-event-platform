@@ -79,24 +79,25 @@ export class ApiLambda extends Construct {
           "arn:aws:lambda:ap-northeast-1:753240598075:layer:LambdaAdapterLayerArm64:24",
         ),
       ],
-      logGroup: new logs.LogGroup(this, "LogGroup", {
-        logGroupName: `/aws/lambda/${props.envName}-realtime-event-api`,
-        retention: logs.RetentionDays.ONE_WEEK,
-        removalPolicy: cdk.RemovalPolicy.DESTROY, // スタック削除時にテーブルも削除する (本番運用時は RETAIN 推奨)
-      }),
       memorySize: props.lambdaMemorySize,
       // HTTP API (v2) の統合タイムアウト上限は 30 秒のため、1 秒のバッファを設けて 29 秒に設定する
       // @see https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-quotas.html
       // > Maximum integration timeout | 30 seconds
       timeout: cdk.Duration.seconds(29),
       environment: {
-        SQS_QUEUE_URL: props.queue.queueUrl,
         APP_ENV: props.envName,
-        // Lambda Web Adapter のデフォルト転送先ポートと一致させる
         APP_PORT: "8080",
         API_SERVICE_NAME: `${props.envName}-realtime-event-api`,
+        SQS_QUEUE_URL: props.queue.queueUrl,
       },
     });
+
+    // cdk.json の useCdkManagedLogGroup が自動生成したロググループに保持期間 7 日とスタック削除ポリシーを設定する
+    // 既存スタックに自動生成済みのロググループがある場合、logGroup プロパティで新規作成すると同名リソースの衝突が起きるためこの方式を採用
+    // this.fn.logGroup は feature flag が無効な環境では fromLogGroupName() のインポート参照を返し defaultChild が存在しないため node.findChild で取得する
+    const managedLogGroup = this.fn.node.findChild("LogGroup") as logs.LogGroup;
+    (managedLogGroup.node.defaultChild as logs.CfnLogGroup).retentionInDays = 7;
+    managedLogGroup.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
 
     // Lambda の IAM Role に SQS SendMessage 権限を付与
     props.queue.grantSendMessages(this.fn);

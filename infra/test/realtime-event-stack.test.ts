@@ -14,7 +14,11 @@ import { devConfig } from "../config/env-config";
  * npm test -- -u
  */
 test("snapshot", () => {
-  const app = new cdk.App();
+  const app = new cdk.App({
+    context: {
+      "@aws-cdk/aws-lambda:useCdkManagedLogGroup": true,
+    },
+  });
   const stack = new RealtimeEventStack(app, "TestStack", { config: devConfig });
   const template = Template.fromStack(stack);
   expect(template.toJSON()).toMatchSnapshot();

@@ -89,11 +89,6 @@ exports[`snapshot 1`] = `
         "Layers": [
           "arn:aws:lambda:ap-northeast-1:753240598075:layer:LambdaAdapterLayerArm64:24",
         ],
-        "LoggingConfig": {
-          "LogGroup": {
-            "Ref": "ApiLambdaLogGroup64C66918",
-          },
-        },
         "MemorySize": 128,
         "Role": {
           "Fn::GetAtt": [
@@ -105,6 +100,25 @@ exports[`snapshot 1`] = `
         "Timeout": 29,
       },
       "Type": "AWS::Lambda::Function",
+    },
+    "ApiLambdaFunctionLogGroup807A7229": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "ApiLambdaFunction8FC74655",
+              },
+            ],
+          ],
+        },
+        "RetentionInDays": 7,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
     "ApiLambdaHttpApi7C050CBF": {
       "Properties": {
@@ -197,15 +211,6 @@ exports[`snapshot 1`] = `
         "StageName": "$default",
       },
       "Type": "AWS::ApiGatewayV2::Stage",
-    },
-    "ApiLambdaLogGroup64C66918": {
-      "DeletionPolicy": "Delete",
-      "Properties": {
-        "LogGroupName": "/aws/lambda/dev-realtime-event-api",
-        "RetentionInDays": 7,
-      },
-      "Type": "AWS::Logs::LogGroup",
-      "UpdateReplacePolicy": "Delete",
     },
     "ApiLambdaRole7F72345A": {
       "Properties": {
