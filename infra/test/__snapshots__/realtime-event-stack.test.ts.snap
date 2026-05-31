@@ -70,10 +70,8 @@ exports[`snapshot 1`] = `
           "arm64",
         ],
         "Code": {
-          "S3Bucket": {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "94614a41e469092fa86a2e3b2dc2642a48284c3260a7729aee059fe7c1027a7f.zip",
+          "S3Bucket": "dev-realtime-event-storage",
+          "S3Key": "artifacts/api/bootstrap.zip",
         },
         "Description": "Receives HTTP requests via API Gateway and publishes events to SQS",
         "Environment": {

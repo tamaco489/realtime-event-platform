@@ -43,6 +43,7 @@ export class RealtimeEventStack extends cdk.Stack {
       envName: props.config.envName,
       queue: sqsQueue.queue,
       lambdaMemorySize: props.config.lambdaMemorySize,
+      artifactsBucketName: props.config.artifactsBucketName,
     });
   }
 }

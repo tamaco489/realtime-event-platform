@@ -1,10 +1,9 @@
-import * as path from "path";
-
 import * as cdk from "aws-cdk-lib";
 import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
 import * as integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as s3 from "aws-cdk-lib/aws-s3";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import { Construct } from "constructs";
 
@@ -14,11 +13,13 @@ import { Construct } from "constructs";
  * @property envName - 環境名。リソースの命名に使用する
  * @property queue - SQS メインキュー。Lambda 環境変数と SendMessage 権限付与に使用する
  * @property lambdaMemorySize - Lambda 関数のメモリサイズ (MB)
+ * @property artifactsBucketName - Lambda ビルド成果物を格納する S3 バケット名
  */
 interface ApiLambdaProps {
   readonly envName: string;
   readonly queue: sqs.Queue;
   readonly lambdaMemorySize: number;
+  readonly artifactsBucketName: string;
 }
 
 /**
@@ -57,9 +58,15 @@ export class ApiLambda extends Construct {
       runtime: lambda.Runtime.PROVIDED_AL2023,
       architecture: lambda.Architecture.ARM_64,
       handler: "bootstrap",
-      // backend/build/api に go build -trimpath -o build/api ./cmd/api でビルドしたバイナリを配置する
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, "../../../backend/build/api"),
+      // make upload-api で s3://{artifactsBucketName}/artifacts/api/bootstrap.zip にアップロードされたバイナリを参照する
+      // objectVersion は指定しない設計。Lambda のコード更新は cdk deploy ではなく make deploy-api で行う
+      code: lambda.Code.fromBucket(
+        s3.Bucket.fromBucketName(
+          this,
+          "ArtifactsBucket",
+          props.artifactsBucketName,
+        ),
+        "artifacts/api/bootstrap.zip",
       ),
       role,
       memorySize: props.lambdaMemorySize,
