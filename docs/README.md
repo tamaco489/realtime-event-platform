@@ -73,7 +73,7 @@ realtime-event-platform/
 
 ### Prerequisites
 
-- Go 1.24.x (managed via [asdf](https://asdf-vm.com/))
+- Go 1.26.x (managed via [asdf](https://asdf-vm.com/))
 - Node.js 24.x (managed via asdf)
 - AWS CDK CLI (`npm install -g aws-cdk`)
 - AWS CLI (configured with appropriate credentials)
@@ -118,4 +118,46 @@ make diff AWS_PROFILE=<your-profile>
 
 # Deploy to AWS
 make deploy AWS_PROFILE=<your-profile>
+```
+
+## Deployment
+
+Lambda code updates and infrastructure changes are managed independently.
+
+### Lambda Code Update
+
+CDK manages only infrastructure definitions. Lambda binary updates are handled via `backend/Makefile`.
+
+```bash
+cd backend
+
+# Build → upload to S3 → update Lambda in one command
+make deploy-lambda AWS_PROFILE=<your-profile> ENV=<env>
+
+# Run individually
+make upload-api AWS_PROFILE=<your-profile>    # Upload API Lambda to S3
+make upload-event AWS_PROFILE=<your-profile>  # Upload Event Lambda to S3
+make deploy-api AWS_PROFILE=<your-profile>    # Update API Lambda code
+make deploy-event AWS_PROFILE=<your-profile>  # Update Event Lambda code
+```
+
+S3 upload paths:
+
+```text
+{ENV}-realtime-event-storage/
+  └── artifacts/
+      ├── api/bootstrap.zip
+      └── event/bootstrap.zip
+```
+
+### Infrastructure Update
+
+When CDK resource definitions change, apply them via `infra/Makefile`.
+
+```bash
+cd infra
+
+# Review changes before deploying
+make diff AWS_PROFILE=<your-profile> ENV=<env>
+make deploy AWS_PROFILE=<your-profile> ENV=<env>
 ```
