@@ -26,3 +26,10 @@ export const devConfig: EnvConfig = {
   bootstrapQualifier: "tamaco489",
   lambdaMemorySize: 128,
 };
+
+/** 本番環境設定 */
+export const prdConfig: EnvConfig = {
+  envName: "prd",
+  bootstrapQualifier: "tamaco489",
+  lambdaMemorySize: 128,
+};
