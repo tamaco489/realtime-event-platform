@@ -75,6 +75,8 @@ export class EventLambda extends Construct {
       // SQS の可視性タイムアウト (30 秒) を超えないよう 25 秒に設定する
       timeout: cdk.Duration.seconds(25),
       environment: {
+        APP_ENV: props.envName,
+        EVENT_SERVICE_NAME: `${props.envName}-realtime-event-event`,
         APPSYNC_API_KEY: props.appSyncApiKey,
         APPSYNC_ENDPOINT: props.appSyncUrl,
         DYNAMODB_TABLE_NAME: props.table.tableName,

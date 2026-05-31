@@ -431,9 +431,11 @@ schema {
                 "GraphQLUrl",
               ],
             },
+            "APP_ENV": "dev",
             "DYNAMODB_TABLE_NAME": {
               "Ref": "DynamoDbTable6E8DC354",
             },
+            "EVENT_SERVICE_NAME": "dev-realtime-event-event",
           },
         },
         "FunctionName": "dev-realtime-event-event",
