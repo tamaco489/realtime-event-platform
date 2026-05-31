@@ -44,6 +44,7 @@ export class AppSyncApi extends Construct {
     // AppSync のリゾルバーは Lambda などのデータソースを使わず、リクエストマッピングテンプレートとレスポンスマッピングテンプレートのみで完結させる設計
     const noneDS = this.api.addNoneDataSource("NoneDataSource", {
       name: `${props.envName}-realtime-event-none-ds`,
+      description: "Passthrough data source for publishEvent mutation",
     });
 
     // Mutation.publishEvent のリクエストマッピングテンプレートとレスポンスマッピングテンプレートを JS で定義する

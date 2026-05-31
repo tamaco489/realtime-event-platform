@@ -284,6 +284,7 @@ exports[`snapshot 1`] = `
             "ApiId",
           ],
         },
+        "Description": "Passthrough data source for publishEvent mutation",
         "Name": "devrealtimeeventnoneds",
         "Type": "NONE",
       },
