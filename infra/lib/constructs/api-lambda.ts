@@ -3,6 +3,7 @@ import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
 import * as integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import { Construct } from "constructs";
@@ -78,6 +79,11 @@ export class ApiLambda extends Construct {
           "arn:aws:lambda:ap-northeast-1:753240598075:layer:LambdaAdapterLayerArm64:24",
         ),
       ],
+      logGroup: new logs.LogGroup(this, "LogGroup", {
+        logGroupName: `/aws/lambda/${props.envName}-realtime-event-api`,
+        retention: logs.RetentionDays.ONE_WEEK,
+        removalPolicy: cdk.RemovalPolicy.DESTROY, // スタック削除時にテーブルも削除する (本番運用時は RETAIN 推奨)
+      }),
       memorySize: props.lambdaMemorySize,
       // HTTP API (v2) の統合タイムアウト上限は 30 秒のため、1 秒のバッファを設けて 29 秒に設定する
       // @see https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-quotas.html
