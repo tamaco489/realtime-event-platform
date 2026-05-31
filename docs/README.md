@@ -7,9 +7,13 @@
 Reference implementation of an event-driven architecture using AWS AppSync Subscription.
 Eliminates polling by delivering real-time push notifications to the frontend via SQS → Lambda → AppSync Mutation.
 
+---
+
 ## Architecture
 
 ![Architecture](architecture.svg)
+
+---
 
 ## Tech Stack
 
@@ -23,17 +27,15 @@ Eliminates polling by delivering real-time push notifications to the frontend vi
 | Infra          | AWS CDK (TypeScript)                              |
 | CI/CD          | GitHub Actions                                    |
 
+---
+
 ## Directory Structure
 
 ```text
 realtime-event-platform/
 ├── frontend/                    # Vite + React + TypeScript (FSD)
-│   └── src/
-│       ├── app/                 # Providers, router, global config
-│       ├── pages/               # Page components
-│       ├── widgets/             # Composite UI blocks
-│       ├── features/            # Feature slices (events/, auth/)
-│       └── shared/              # Shared utils, GraphQL codegen
+│   ├── src/
+│   └── public/
 │
 ├── backend/                     # Go Lambda — unified module
 │   ├── cmd/
@@ -41,61 +43,82 @@ realtime-event-platform/
 │   │   └── event/main.go        # Event Lambda entrypoint
 │   ├── internal/
 │   │   ├── handler/
-│   │   │   ├── api/             # REST handler → publisher
+│   │   │   ├── api/             # REST handler → producer
 │   │   │   └── event/           # SQS handler → notifier
-│   │   ├── library/
-│   │   │   ├── publisher/       # SQS SendMessage client
-│   │   │   └── notifier/        # AppSync Mutation client
-│   │   └── types/
+│   │   └── library/
+│   │       ├── config/          # Environment config
+│   │       ├── producer/        # SQS SendMessage client
+│   │       ├── notifier/        # AppSync Mutation client
+│   │       └── store/           # DynamoDB client
+│   ├── tools/                   # Local dev tools & test events
 │   ├── go.mod
 │   └── Makefile
 │
-├── infra/                       # AWS CDK (TypeScript)
-│   ├── bin/app.ts               # CDK App entrypoint — instantiates stack with devConfig
-│   ├── lib/
-│   │   ├── stacks/              # Stack definitions
-│   │   └── constructs/          # L3 custom constructs (one file per resource)
-│   ├── config/env-config.ts     # EnvConfig type + devConfig (add stg/prd as constants)
-│   ├── test/                    # CDK snapshot / unit tests (Jest)
-│   ├── cdk.json
-│   └── Makefile
-│
-├── .github/
-│   ├── workflows/               # CI/CD workflows
-│   └── PULL_REQUEST_TEMPLATE.md
-│
-└── docs/
-    ├── README.md
-    └── README.ja.md
+└── infra/                       # AWS CDK (TypeScript)
+    ├── bin/app.ts               # CDK App entrypoint
+    ├── lib/
+    │   ├── stacks/              # Stack definitions
+    │   └── constructs/          # L3 custom constructs (one file per resource)
+    ├── config/env-config.ts     # EnvConfig type + environment constants
+    ├── test/                    # CDK snapshot / unit tests (Jest)
+    ├── cdk.json
+    └── Makefile
 ```
+
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-- Go 1.26.x (managed via [asdf](https://asdf-vm.com/))
 - Node.js 24.x (managed via asdf)
+- Go 1.26.x (managed via [asdf](https://asdf-vm.com/))
 - AWS CDK CLI (`npm install -g aws-cdk`)
 - AWS CLI (configured with appropriate credentials)
-
-### Backend
-
-```bash
-cd backend
-
-# Build API Lambda binary
-make build-api
-
-# Build Event Lambda binary
-make build-event
-```
 
 ### Frontend
 
 ```bash
 cd frontend
-npm install
-npm run dev
+
+# Install dependencies
+make install
+
+# Start dev server (http://localhost:5173)
+make up
+
+# Code quality checks (Prettier → build → ESLint)
+make verify
+```
+
+### Backend (API)
+
+```bash
+cd backend
+
+# Start dev server (http://localhost:18080)
+make up
+
+# Code quality checks (format → build → lint → test)
+make verify
+```
+
+### Backend (Lambda)
+
+```bash
+cd backend
+
+# Install tools for running Lambda locally
+make setup-tools
+
+# Start Lambda listener in a separate terminal
+make run-event
+
+# Send a test event (run in another terminal after Lambda is ready)
+make invoke-event
+
+# Specify a different event file
+make invoke-event EVENT_FILE=tools/events/sqs_event.json
 ```
 
 ### Infrastructure
@@ -120,11 +143,11 @@ make diff AWS_PROFILE=<your-profile>
 make deploy AWS_PROFILE=<your-profile>
 ```
 
+---
+
 ## Deployment
 
-Lambda code updates and infrastructure changes are managed independently.
-
-### Lambda Code Update
+### Backend (API & Lambda)
 
 CDK manages only infrastructure definitions. Lambda binary updates are handled via `backend/Makefile`.
 
@@ -148,4 +171,24 @@ S3 upload paths:
   └── artifacts/
       ├── api/bootstrap.zip
       └── event/bootstrap.zip
+```
+
+### Frontend (S3 + CloudFront)
+
+```bash
+cd frontend
+
+# Build → upload to S3 → invalidate CloudFront cache in one command
+make deploy AWS_PROFILE=<your-profile> CF_DISTRIBUTION_ID=<distribution-id>
+
+# Run individually
+make build                               # Prettier format + build
+make upload AWS_PROFILE=<your-profile>   # Sync dist/ to S3
+```
+
+S3 upload path:
+
+```text
+{ENV}-realtime-event-frontend/
+  └── (Vite build artifacts)
 ```
