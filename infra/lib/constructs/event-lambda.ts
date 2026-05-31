@@ -23,6 +23,7 @@ interface EventLambdaProps {
   readonly envName: string;
   readonly queue: sqs.Queue;
   readonly table: dynamodb.Table;
+  readonly appSyncArn: string;
   readonly appSyncUrl: string;
   readonly appSyncApiKey: string;
   readonly lambdaMemorySize: number;
@@ -90,6 +91,15 @@ export class EventLambda extends Construct {
 
     // DynamoDB テーブルへの書き込み権限を付与
     props.table.grantWriteData(this.fn);
+
+    // AppSync API への Mutation 実行権限を特定の API ARN に限定して付与
+    this.fn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["appsync:GraphQL"],
+        resources: [`${props.appSyncArn}/*`],
+      }),
+    );
 
     // SQS メインキューをイベントソースとして設定し、パーシャルバッチ失敗を有効化する
     this.fn.addEventSource(
