@@ -26,7 +26,7 @@ export class DynamoDbTable extends Construct {
       tableName: `realtime-event-table-${props.envName}`,
       partitionKey: { name: "event_id", type: dynamodb.AttributeType.STRING }, // パーティションキーは event_id (UUID 文字列) 固定
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // dev 環境のみ — スタック削除時にテーブルも削除する
+      removalPolicy: cdk.RemovalPolicy.RETAIN, // スタック削除時もテーブルを保持する
     });
 
     new cdk.CfnOutput(scope, "DynamoDbTableName", {
