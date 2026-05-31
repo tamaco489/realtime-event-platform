@@ -37,6 +37,7 @@ export class ApiLambda extends Construct {
   constructor(scope: Construct, id: string, props: ApiLambdaProps) {
     super(scope, id);
 
+    // Lambda 実行 Role
     const role = new iam.Role(this, "Role", {
       roleName: `${props.envName}-realtime-event-api-lambda-role`,
       assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
@@ -48,6 +49,7 @@ export class ApiLambda extends Construct {
       ],
     });
 
+    // Lambda 関数
     this.fn = new lambda.Function(this, "Function", {
       functionName: `${props.envName}-realtime-event-api`,
       description:
@@ -70,8 +72,10 @@ export class ApiLambda extends Construct {
       },
     });
 
-    props.queue.grantSendMessages(this.fn); // Lambda の IAM ロールに SQS SendMessage 権限を付与する
+    // Lambda の IAM Role に SQS SendMessage 権限を付与
+    props.queue.grantSendMessages(this.fn);
 
+    // HTTP API
     this.httpApi = new apigwv2.HttpApi(this, "HttpApi", {
       apiName: `${props.envName}-realtime-event-http-api`,
       description: "HTTP API for the realtime event delivery platform",
