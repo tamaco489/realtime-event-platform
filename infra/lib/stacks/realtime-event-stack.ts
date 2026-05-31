@@ -5,6 +5,7 @@ import { EnvConfig } from "../../config/env-config";
 import { ApiLambda } from "../constructs/api-lambda";
 import { AppSyncApi } from "../constructs/appsync-api";
 import { DynamoDbTable } from "../constructs/dynamodb-table";
+import { EventLambda } from "../constructs/event-lambda";
 import { SqsQueue } from "../constructs/sqs-queue";
 
 /**
@@ -27,7 +28,7 @@ export class RealtimeEventStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RealtimeEventStackProps) {
     super(scope, id, props);
 
-    new AppSyncApi(this, "AppSyncApi", {
+    const appSyncApi = new AppSyncApi(this, "AppSyncApi", {
       envName: props.config.envName,
     });
 
@@ -35,13 +36,23 @@ export class RealtimeEventStack extends cdk.Stack {
       envName: props.config.envName,
     });
 
-    new DynamoDbTable(this, "DynamoDbTable", {
+    const dynamoDbTable = new DynamoDbTable(this, "DynamoDbTable", {
       envName: props.config.envName,
     });
 
     new ApiLambda(this, "ApiLambda", {
       envName: props.config.envName,
       queue: sqsQueue.queue,
+      lambdaMemorySize: props.config.lambdaMemorySize,
+      artifactsBucketName: props.config.artifactsBucketName,
+    });
+
+    new EventLambda(this, "EventLambda", {
+      envName: props.config.envName,
+      queue: sqsQueue.queue,
+      table: dynamoDbTable.table,
+      appSyncUrl: appSyncApi.api.graphqlUrl,
+      appSyncApiKey: appSyncApi.api.apiKey ?? "",
       lambdaMemorySize: props.config.lambdaMemorySize,
       artifactsBucketName: props.config.artifactsBucketName,
     });
