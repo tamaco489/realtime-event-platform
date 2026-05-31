@@ -49,6 +49,8 @@ export class ApiLambda extends Construct {
 
     this.fn = new lambda.Function(this, "Function", {
       functionName: `${props.envName}-realtime-event-api`,
+      description:
+        "Receives HTTP requests via API Gateway and publishes events to SQS",
       runtime: lambda.Runtime.PROVIDED_AL2023,
       architecture: lambda.Architecture.ARM_64,
       handler: "bootstrap",
@@ -68,6 +70,7 @@ export class ApiLambda extends Construct {
 
     this.httpApi = new apigwv2.HttpApi(this, "HttpApi", {
       apiName: `${props.envName}-realtime-event-http-api`,
+      description: "HTTP API for the realtime event delivery platform",
       defaultIntegration: new integrations.HttpLambdaIntegration(
         "Integration",
         this.fn,
