@@ -70,7 +70,7 @@ export class ApiLambda extends Construct {
       },
     });
 
-    props.queue.grantSendMessages(this.fn);
+    props.queue.grantSendMessages(this.fn); // Lambda の IAM ロールに SQS SendMessage 権限を付与する
 
     this.httpApi = new apigwv2.HttpApi(this, "HttpApi", {
       apiName: `${props.envName}-realtime-event-http-api`,
