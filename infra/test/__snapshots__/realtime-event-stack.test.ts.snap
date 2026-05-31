@@ -403,6 +403,173 @@ schema {
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Delete",
     },
+    "EventLambdaFunction39988493": {
+      "DependsOn": [
+        "EventLambdaRoleDefaultPolicy20B3E462",
+        "EventLambdaRole47425437",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": "dev-realtime-event-storage",
+          "S3Key": "artifacts/event/bootstrap.zip",
+        },
+        "Description": "Consumes SQS events, writes to DynamoDB, and publishes to AppSync",
+        "Environment": {
+          "Variables": {
+            "APPSYNC_API_KEY": {
+              "Fn::GetAtt": [
+                "AppSyncApiDefaultApiKey4C5F84B8",
+                "ApiKey",
+              ],
+            },
+            "APPSYNC_ENDPOINT": {
+              "Fn::GetAtt": [
+                "AppSyncApiEBDAEC17",
+                "GraphQLUrl",
+              ],
+            },
+            "APP_ENV": "dev",
+            "DYNAMODB_TABLE_NAME": {
+              "Ref": "DynamoDbTable6E8DC354",
+            },
+            "EVENT_SERVICE_NAME": "dev-realtime-event-event",
+          },
+        },
+        "FunctionName": "dev-realtime-event-event",
+        "Handler": "bootstrap",
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "EventLambdaRole47425437",
+            "Arn",
+          ],
+        },
+        "Runtime": "provided.al2023",
+        "Timeout": 25,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "EventLambdaFunctionLogGroup837239B8": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "EventLambdaFunction39988493",
+              },
+            ],
+          ],
+        },
+        "RetentionInDays": 7,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "EventLambdaFunctionSqsEventSourceTestStackSqsQueue62C47C6C9F949501": {
+      "Properties": {
+        "EventSourceArn": {
+          "Fn::GetAtt": [
+            "SqsQueueB359A2D7",
+            "Arn",
+          ],
+        },
+        "FunctionName": {
+          "Ref": "EventLambdaFunction39988493",
+        },
+        "FunctionResponseTypes": [
+          "ReportBatchItemFailures",
+        ],
+      },
+      "Type": "AWS::Lambda::EventSourceMapping",
+    },
+    "EventLambdaRole47425437": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "RoleName": "dev-realtime-event-event-lambda-role",
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "EventLambdaRoleDefaultPolicy20B3E462": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "DynamoDbTable6E8DC354",
+                    "Arn",
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "sqs:ReceiveMessage",
+                "sqs:ChangeMessageVisibility",
+                "sqs:GetQueueUrl",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "SqsQueueB359A2D7",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "EventLambdaRoleDefaultPolicy20B3E462",
+        "Roles": [
+          {
+            "Ref": "EventLambdaRole47425437",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "SqsQueueB359A2D7": {
       "DeletionPolicy": "Delete",
       "Properties": {
