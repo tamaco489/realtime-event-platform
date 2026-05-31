@@ -543,6 +543,24 @@ schema {
               ],
             },
             {
+              "Action": "appsync:GraphQL",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "AppSyncApiEBDAEC17",
+                        "Arn",
+                      ],
+                    },
+                    "/types/Mutation/fields/publishEvent",
+                  ],
+                ],
+              },
+            },
+            {
               "Action": [
                 "sqs:ReceiveMessage",
                 "sqs:ChangeMessageVisibility",
