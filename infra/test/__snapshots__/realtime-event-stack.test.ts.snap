@@ -2,11 +2,100 @@
 
 exports[`snapshot 1`] = `
 {
+  "Outputs": {
+    "AppSyncApiKey": {
+      "Description": "AppSync API キー",
+      "Value": {
+        "Fn::GetAtt": [
+          "AppSyncApiDefaultApiKey4C5F84B8",
+          "ApiKey",
+        ],
+      },
+    },
+    "AppSyncUrl": {
+      "Description": "AppSync GraphQL エンドポイント URL",
+      "Value": {
+        "Fn::GetAtt": [
+          "AppSyncApiEBDAEC17",
+          "GraphQLUrl",
+        ],
+      },
+    },
+  },
   "Parameters": {
     "BootstrapVersion": {
       "Default": "/cdk-bootstrap/hnb659fds/version",
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "AppSyncApiDefaultApiKey4C5F84B8": {
+      "DependsOn": [
+        "AppSyncApiSchemaD3A1C979",
+      ],
+      "Properties": {
+        "ApiId": {
+          "Fn::GetAtt": [
+            "AppSyncApiEBDAEC17",
+            "ApiId",
+          ],
+        },
+      },
+      "Type": "AWS::AppSync::ApiKey",
+    },
+    "AppSyncApiEBDAEC17": {
+      "Properties": {
+        "AuthenticationType": "API_KEY",
+        "Name": "realtime-event-api-dev",
+      },
+      "Type": "AWS::AppSync::GraphQLApi",
+    },
+    "AppSyncApiSchemaD3A1C979": {
+      "Properties": {
+        "ApiId": {
+          "Fn::GetAtt": [
+            "AppSyncApiEBDAEC17",
+            "ApiId",
+          ],
+        },
+        "Definition": "# イベントの基本情報を表す型
+type Event {
+  event_id: String! # イベント固有 ID
+  event_type: String! # イベント種別 (例: order.created)
+  payload: String! # イベントペイロード (JSON 文字列)
+  created_at: AWSTimestamp! # イベント発生日時 (Unix タイムスタンプ, 秒)
+}
+
+# publishEvent Mutation の入力型
+input PublishEventInput {
+  event_type: String! # イベント種別
+  payload: String! # イベントペイロード (JSON 文字列)
+}
+
+type Mutation {
+  # イベントを AppSync へ Publish し、Subscription に Push する
+  publishEvent(input: PublishEventInput!): Event
+}
+
+type Subscription {
+  # publishEvent Mutation が呼ばれたときにフロントエンドへリアルタイム Push する
+  onEventReceived: Event @aws_subscribe(mutations: ["publishEvent"])
+}
+
+# AppSync は Query 型が必須のため placeholder を定義する
+type Query {
+  placeholder: String
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+",
+      },
+      "Type": "AWS::AppSync::GraphQLSchema",
     },
   },
   "Rules": {

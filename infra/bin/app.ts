@@ -15,6 +15,7 @@ import { devConfig } from "../config/env-config";
 const app = new cdk.App();
 
 new RealtimeEventStack(app, `RealtimeEventStack-${devConfig.envName}`, {
+  description: "Realtime event delivery platform based on AppSync Subscription",
   /**
    * cdk bootstrap 時に指定した qualifier と一致させる必要がある。
    * qualifier が異なると CDK bootstrap ロールの assume に失敗する。
