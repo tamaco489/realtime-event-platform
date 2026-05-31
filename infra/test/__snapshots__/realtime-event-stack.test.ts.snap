@@ -30,6 +30,23 @@ exports[`snapshot 1`] = `
         ],
       },
     },
+    "CloudFrontUrl": {
+      "Description": "CloudFront distribution URL",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Fn::GetAtt": [
+                "CloudFrontS3Distribution33D25935",
+                "DomainName",
+              ],
+            },
+          ],
+        ],
+      },
+    },
     "DynamoDbTableName": {
       "Description": "DynamoDB event table name",
       "Value": {
@@ -381,6 +398,254 @@ schema {
 ",
       },
       "Type": "AWS::AppSync::GraphQLSchema",
+    },
+    "CloudFrontS3Bucket73FAB78F": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "BucketName": "dev-realtime-event-frontend",
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "Tags": [
+          {
+            "Key": "aws-cdk:auto-delete-objects",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "CloudFrontS3BucketAutoDeleteObjectsCustomResource153647A9": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "CloudFrontS3BucketPolicy54FF1FF0",
+      ],
+      "Properties": {
+        "BucketName": {
+          "Ref": "CloudFrontS3Bucket73FAB78F",
+        },
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::S3AutoDeleteObjects",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "CloudFrontS3BucketPolicy54FF1FF0": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "CloudFrontS3Bucket73FAB78F",
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:PutBucketPolicy",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+                    "Arn",
+                  ],
+                },
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "CloudFrontS3Bucket73FAB78F",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "CloudFrontS3Bucket73FAB78F",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "s3:GetObject",
+              "Condition": {
+                "StringEquals": {
+                  "AWS:SourceArn": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":cloudfront::",
+                        {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":distribution/",
+                        {
+                          "Ref": "CloudFrontS3Distribution33D25935",
+                        },
+                      ],
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudfront.amazonaws.com",
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "CloudFrontS3Bucket73FAB78F",
+                        "Arn",
+                      ],
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "CloudFrontS3Distribution33D25935": {
+      "Properties": {
+        "DistributionConfig": {
+          "CustomErrorResponses": [
+            {
+              "ErrorCode": 403,
+              "ResponseCode": 200,
+              "ResponsePagePath": "/index.html",
+            },
+          ],
+          "DefaultCacheBehavior": {
+            "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+            "Compress": true,
+            "TargetOriginId": "TestStackCloudFrontS3DistributionOrigin1034CEE19",
+            "ViewerProtocolPolicy": "redirect-to-https",
+          },
+          "DefaultRootObject": "index.html",
+          "Enabled": true,
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "Origins": [
+            {
+              "DomainName": {
+                "Fn::GetAtt": [
+                  "CloudFrontS3Bucket73FAB78F",
+                  "RegionalDomainName",
+                ],
+              },
+              "Id": "TestStackCloudFrontS3DistributionOrigin1034CEE19",
+              "OriginAccessControlId": {
+                "Fn::GetAtt": [
+                  "CloudFrontS3DistributionOrigin1S3OriginAccessControlEC9108D6",
+                  "Id",
+                ],
+              },
+              "S3OriginConfig": {
+                "OriginAccessIdentity": "",
+              },
+            },
+          ],
+        },
+      },
+      "Type": "AWS::CloudFront::Distribution",
+    },
+    "CloudFrontS3DistributionOrigin1S3OriginAccessControlEC9108D6": {
+      "Properties": {
+        "OriginAccessControlConfig": {
+          "Name": "TestStackCloudFrontS3DistribOrigin1S3OriginAccessControlEC135EE4",
+          "OriginAccessControlOriginType": "s3",
+          "SigningBehavior": "always",
+          "SigningProtocol": "sigv4",
+        },
+      },
+      "Type": "AWS::CloudFront::OriginAccessControl",
+    },
+    "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
+      "DependsOn": [
+        "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip",
+        },
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              "Lambda function for auto-deleting objects in ",
+              {
+                "Ref": "CloudFrontS3Bucket73FAB78F",
+              },
+              " S3 bucket.",
+            ],
+          ],
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Sub": "arn:\${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
     },
     "DynamoDbTable6E8DC354": {
       "DeletionPolicy": "Delete",
