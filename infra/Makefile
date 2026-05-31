@@ -24,7 +24,7 @@ diff: build
 	AWS_PROFILE=$(AWS_PROFILE) npx cdk diff
 
 deploy: build
-	AWS_PROFILE=$(AWS_PROFILE) npx cdk deploy --require-approval never
+	AWS_PROFILE=$(AWS_PROFILE) npx cdk deploy
 
 destroy:
 	AWS_PROFILE=$(AWS_PROFILE) npx cdk destroy --force
