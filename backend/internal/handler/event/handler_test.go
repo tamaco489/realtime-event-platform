@@ -28,9 +28,9 @@ func TestHandler_Handle(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		body        string
 		storeErr    error
 		notifierErr error
+		body        string
 	}{
 		"正常系_有効なレコードを処理できる": {
 			body: `{"event_type":"user.created","payload":{"user_id":"u-001"}}`,
