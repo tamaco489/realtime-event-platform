@@ -97,7 +97,7 @@ export class EventLambda extends Construct {
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ["appsync:GraphQL"],
-        resources: [`${props.appSyncArn}/*`],
+        resources: [`${props.appSyncArn}/types/Mutation/fields/publishEvent`],
       }),
     );
 
