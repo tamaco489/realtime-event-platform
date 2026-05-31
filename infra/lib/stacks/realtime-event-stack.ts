@@ -3,6 +3,7 @@ import { Construct } from "constructs";
 
 import { EnvConfig } from "../../config/env-config";
 import { AppSyncApi } from "../constructs/appsync-api";
+import { DynamoDbTable } from "../constructs/dynamodb-table";
 import { SqsQueue } from "../constructs/sqs-queue";
 
 /**
@@ -30,6 +31,10 @@ export class RealtimeEventStack extends cdk.Stack {
     });
 
     new SqsQueue(this, "SqsQueue", {
+      envName: props.config.envName,
+    });
+
+    new DynamoDbTable(this, "DynamoDbTable", {
       envName: props.config.envName,
     });
   }

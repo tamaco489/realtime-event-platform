@@ -21,6 +21,12 @@ exports[`snapshot 1`] = `
         ],
       },
     },
+    "DynamoDbTableName": {
+      "Description": "DynamoDB event table name",
+      "Value": {
+        "Ref": "DynamoDbTable6E8DC354",
+      },
+    },
     "SqsDlqArn": {
       "Description": "SQS dead letter queue ARN",
       "Value": {
@@ -111,6 +117,27 @@ schema {
 ",
       },
       "Type": "AWS::AppSync::GraphQLSchema",
+    },
+    "DynamoDbTable6E8DC354": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "event_id",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "event_id",
+            "KeyType": "HASH",
+          },
+        ],
+        "TableName": "realtime-event-table-dev",
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
     },
     "SqsQueueB359A2D7": {
       "DeletionPolicy": "Delete",
