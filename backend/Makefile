@@ -38,9 +38,14 @@ logs:
 	docker compose logs -f api
 
 
-.PHONY: run-event
+EVENT_FILE  ?= tools/events/sqs_event.json
+
+.PHONY: run-event invoke-event
 run-event:
 	_LAMBDA_SERVER_PORT=9000 APP_ENV=local EVENT_SERVICE_NAME=realtime-event-lambda go run ./cmd/event
+
+invoke-event:
+	emulator -event $(EVENT_FILE)
 
 
 S3_BUCKET   ?= $(ENV)-realtime-event-storage
