@@ -17,6 +17,7 @@ import { Construct } from "constructs";
  * @property table - DynamoDB イベントテーブル。書き込み権限を付与する
  * @property channelNamespace - AppSync Events チャンネル名前空間。EventPublish 権限の付与に使用する
  * @property appSyncUrl - AppSync Events HTTP Publish ベース URL (https://<http-dns>)
+ * @property appSyncChannel - AppSync Events チャンネルパス (例: default/events)
  * @property appSyncApiKey - AppSync API キー
  * @property lambdaMemorySize - Lambda 関数のメモリサイズ (MB)
  * @property artifactsBucketName - Lambda ビルド成果物を格納する S3 バケット名
@@ -27,6 +28,7 @@ interface EventLambdaProps {
   readonly table: dynamodb.Table;
   readonly channelNamespace: appsync.ChannelNamespace;
   readonly appSyncUrl: string;
+  readonly appSyncChannel: string;
   readonly appSyncApiKey: string;
   readonly lambdaMemorySize: number;
   readonly artifactsBucketName: string;
@@ -82,6 +84,7 @@ export class EventLambda extends Construct {
         EVENT_SERVICE_NAME: `${props.envName}-realtime-event-event`,
         APPSYNC_API_KEY: props.appSyncApiKey,
         APPSYNC_ENDPOINT: props.appSyncUrl,
+        APPSYNC_CHANNEL: props.appSyncChannel,
         DYNAMODB_TABLE_NAME: props.table.tableName,
       },
     });
