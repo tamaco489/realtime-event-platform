@@ -24,6 +24,7 @@ type StoreConfig struct {
 type NotifierConfig struct {
 	Endpoint string `env:"APPSYNC_ENDPOINT"`
 	APIKey   string `env:"APPSYNC_API_KEY"`
+	Channel  string `env:"APPSYNC_CHANNEL"`
 }
 
 func EventLoad() (*EventConfig, error) {

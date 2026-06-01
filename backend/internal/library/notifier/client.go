@@ -5,16 +5,21 @@ import (
 	"log"
 	"net/http"
 
-	lib_config "github.com/tamaco489/realtime-event-platform/backend/internal/library/config"
+	"github.com/tamaco489/realtime-event-platform/backend/internal/library/config"
 )
 
 type notifier struct {
 	client   *http.Client
 	endpoint string
+	channel  string
 	apiKey   string
 }
 
-func NewNotifier(_ context.Context, env lib_config.Environment, endpoint, apiKey string) (EventPublisher, error) {
+func NewNotifier(
+	_ context.Context,
+	env config.Environment,
+	endpoint, channel, apiKey string,
+) (EventPublisher, error) {
 	if env.IsLocal() {
 		log.Println("notifier: running in mock mode")
 		return &mockPublisher{}, nil
@@ -23,6 +28,7 @@ func NewNotifier(_ context.Context, env lib_config.Environment, endpoint, apiKey
 	return &notifier{
 		client:   &http.Client{},
 		endpoint: endpoint,
+		channel:  channel,
 		apiKey:   apiKey,
 	}, nil
 }
