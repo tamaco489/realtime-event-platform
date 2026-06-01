@@ -1,5 +1,3 @@
-import * as path from "path";
-
 import * as cdk from "aws-cdk-lib";
 import * as appsync from "aws-cdk-lib/aws-appsync";
 import { Construct } from "constructs";
@@ -14,67 +12,53 @@ interface AppSyncApiProps {
 }
 
 /**
- * AppSync GraphQL API コンストラクト
+ * AppSync Events API コンストラクト
  *
- * API キー認証で GraphQL API を定義し、エンドポイント URL と API キーを Stack Output に出力する。
- * スキーマは schema.graphql から読み込む。
+ * API キー認証で AppSync Events API を定義する。
+ * HTTP Publish エンドポイント・WebSocket エンドポイント・API キーを Stack Output に出力する。
  *
- * @see {@link https://docs.aws.amazon.com/appsync/latest/devguide/what-is-appsync.html AWS AppSync}
+ * @see {@link https://docs.aws.amazon.com/appsync/latest/eventapi/welcome.html AWS AppSync Events}
  */
 export class AppSyncApi extends Construct {
-  /** AppSync GraphQL API インスタンス */
-  readonly api: appsync.GraphqlApi;
+  /** AppSync Events API インスタンス */
+  readonly api: appsync.EventApi;
+  /** デフォルトチャンネル名前空間 */
+  readonly channelNamespace: appsync.ChannelNamespace;
 
   constructor(scope: Construct, id: string, props: AppSyncApiProps) {
     super(scope, id);
 
-    this.api = new appsync.GraphqlApi(this, "Api", {
-      name: `${props.envName}-realtime-event-api`,
-      // __dirname (このファイルと同階層) の schema.graphql を cdk synth 時にインライン展開する
-      definition: appsync.Definition.fromFile(
-        path.join(__dirname, "schema.graphql"),
-      ),
+    this.api = new appsync.EventApi(this, "EventApi", {
+      apiName: `${props.envName}-realtime-event-api`,
       authorizationConfig: {
-        defaultAuthorization: {
-          authorizationType: appsync.AuthorizationType.API_KEY,
-        },
+        authProviders: [
+          { authorizationType: appsync.AppSyncAuthorizationType.API_KEY },
+        ],
+        connectionAuthModeTypes: [appsync.AppSyncAuthorizationType.API_KEY],
+        defaultPublishAuthModeTypes: [appsync.AppSyncAuthorizationType.API_KEY],
+        defaultSubscribeAuthModeTypes: [
+          appsync.AppSyncAuthorizationType.API_KEY,
+        ],
       },
     });
 
-    // addNoneDataSource を使うことで type: NONE を明示。外部データソースを持たず Subscription へのパススルーのみを担う
-    const noneDS = this.api.addNoneDataSource("NoneDataSource", {
-      name: `${props.envName}-realtime-event-none-ds`,
-      description: "Passthrough data source for publishEvent mutation",
+    this.channelNamespace = this.api.addChannelNamespace("default");
+
+    // HTTP Publish エンドポイント (バックエンド Lambda の APPSYNC_ENDPOINT 環境変数に設定する)
+    new cdk.CfnOutput(scope, "AppSyncHttpUrl", {
+      value: `https://${this.api.httpDns}`,
+      description: "AppSync Events HTTP Publish endpoint URL",
     });
 
-    // Mutation.publishEvent のリクエストマッピングテンプレートとレスポンスマッピングテンプレートを JS で定義する
-    noneDS.createResolver("PublishEventResolver", {
-      typeName: "Mutation",
-      fieldName: "publishEvent",
-      // *.js は .gitignore 対象のため fromInline でインライン定義する
-      code: appsync.Code.fromInline(`
-        export function request(ctx) { return { payload: ctx.args.input }; }
-        export function response(ctx) {
-          return {
-            event_id: util.autoId(),
-            event_type: ctx.result.event_type,
-            payload: ctx.result.payload,
-            created_at: util.time.nowEpochSeconds(),
-          };
-        }
-      `),
-      runtime: appsync.FunctionRuntime.JS_1_0_0,
-    });
-
-    // AppSync のエンドポイント URL と API キーを CloudFormation Stack Output に出力
-    new cdk.CfnOutput(scope, "AppSyncUrl", {
-      value: this.api.graphqlUrl,
-      description: "AppSync GraphQL endpoint URL",
+    // WebSocket 接続エンドポイント (フロントエンドの VITE_APPSYNC_REALTIME_URL 環境変数に設定する)
+    new cdk.CfnOutput(scope, "AppSyncRealtimeUrl", {
+      value: `wss://${this.api.realtimeDns}`,
+      description: "AppSync Events WebSocket endpoint URL",
     });
 
     // API キーはデフォルトで 7 日間有効。期限切れ前に再デプロイすれば新しいキーが発行される設計
     new cdk.CfnOutput(scope, "AppSyncApiKey", {
-      value: this.api.apiKey ?? "",
+      value: this.api.apiKeys["Default"].attrApiKey,
       description: "AppSync API key",
     });
   }
