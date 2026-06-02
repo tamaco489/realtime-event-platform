@@ -3,6 +3,11 @@ ENV                ?= prd
 S3_BUCKET          ?= $(ENV)-realtime-event-frontend
 CF_DISTRIBUTION_ID ?=
 
+.PHONY: setup-tools
+setup-tools:
+	cp .env.example .env.local
+
+
 .PHONY: install up preview
 install:
 	npm install
