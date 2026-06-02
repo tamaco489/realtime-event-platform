@@ -1,5 +1,9 @@
 import { Button } from "@shared/ui/Button";
-import { useTicketOrderForm, SEAT_TYPES, type SeatType } from "@features/event-sender/model/useTicketOrderForm";
+import {
+  useTicketOrderForm,
+  SEAT_TYPES,
+  type SeatType,
+} from "@features/event-sender/model/useTicketOrderForm";
 
 /**
  * チケット注文フォームコンポーネント

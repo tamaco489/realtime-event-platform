@@ -30,7 +30,11 @@ export async function postTicketOrder(req: PostTicketOrderRequest): Promise<void
     useEventFeedStore.getState().addEvent({
       event_id: crypto.randomUUID(),
       event_type: "created",
-      payload: JSON.stringify({ order_id: `ord-${crypto.randomUUID()}`, status: "confirmed" }, null, 2),
+      payload: JSON.stringify(
+        { order_id: `ord-${crypto.randomUUID()}`, status: "confirmed" },
+        null,
+        2
+      ),
       created_at: Math.floor(Date.now() / 1000),
     });
     return;
