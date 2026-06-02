@@ -23,8 +23,8 @@ type postTicketOrderRequest struct {
 }
 
 type sqsMessage struct {
-	EventType string         `json:"event_type"`
 	Payload   map[string]any `json:"payload"`
+	EventType string         `json:"event_type"`
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
