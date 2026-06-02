@@ -659,7 +659,7 @@ exports[`snapshot 1`] = `
                 "ApiKey",
               ],
             },
-            "APPSYNC_CHANNEL": "default/events",
+            "APPSYNC_CHANNEL": "tickets/orders",
             "APPSYNC_ENDPOINT": {
               "Fn::Join": [
                 "",
