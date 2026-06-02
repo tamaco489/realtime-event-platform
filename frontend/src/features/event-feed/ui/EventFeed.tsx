@@ -1,5 +1,6 @@
 import { useEventSubscription } from "@features/event-feed/api";
 import { useEventFeedStore } from "@features/event-feed/model/store";
+import { JsonHighlight } from "@shared/ui/JsonHighlight";
 
 /**
  * リアルタイムイベントフィードコンポーネント
@@ -27,16 +28,13 @@ export function EventFeed() {
       ) : (
         events.map((event) => (
           <div key={event.event_id} className="bg-gray-700 rounded-lg p-3 flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <span className="text-indigo-400 font-mono text-sm font-semibold">
-                {event.event_type}
-              </span>
+            <div className="flex items-center justify-end">
               <span className="text-gray-400 text-xs">
                 {new Date(event.created_at * 1000).toLocaleString()}
               </span>
             </div>
-            <pre className="text-gray-300 text-xs font-mono whitespace-pre-wrap break-all">
-              {event.payload}
+            <pre className="text-xs font-mono text-left leading-relaxed">
+              <JsonHighlight json={event.payload} />
             </pre>
           </div>
         ))

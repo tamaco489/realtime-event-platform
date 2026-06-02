@@ -355,7 +355,7 @@ exports[`snapshot 1`] = `
       },
       "Type": "AWS::AppSync::ApiKey",
     },
-    "AppSyncApiEventApidefault23DFAB24": {
+    "AppSyncApiEventApitickets7904E401": {
       "Properties": {
         "ApiId": {
           "Fn::GetAtt": [
@@ -364,7 +364,7 @@ exports[`snapshot 1`] = `
           ],
         },
         "HandlerConfigs": {},
-        "Name": "default",
+        "Name": "tickets",
       },
       "Type": "AWS::AppSync::ChannelNamespace",
     },
@@ -659,7 +659,7 @@ exports[`snapshot 1`] = `
                 "ApiKey",
               ],
             },
-            "APPSYNC_CHANNEL": "default/events",
+            "APPSYNC_CHANNEL": "tickets/orders",
             "APPSYNC_ENDPOINT": {
               "Fn::Join": [
                 "",
@@ -790,7 +790,7 @@ exports[`snapshot 1`] = `
               "Effect": "Allow",
               "Resource": {
                 "Fn::GetAtt": [
-                  "AppSyncApiEventApidefault23DFAB24",
+                  "AppSyncApiEventApitickets7904E401",
                   "ChannelNamespaceArn",
                 ],
               },
