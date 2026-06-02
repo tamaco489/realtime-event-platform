@@ -1,5 +1,6 @@
 import { Amplify } from "aws-amplify";
 
+// Amplify の API モジュールを使用するための設定
 Amplify.configure({
   API: {
     Events: {
