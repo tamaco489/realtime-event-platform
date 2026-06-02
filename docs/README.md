@@ -79,6 +79,9 @@ realtime-event-platform/
 ```bash
 cd frontend
 
+# Copy .env.example to .env.local
+make setup-tools
+
 # Install dependencies
 make install
 

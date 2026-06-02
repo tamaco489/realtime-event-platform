@@ -79,6 +79,9 @@ realtime-event-platform/
 ```bash
 cd frontend
 
+# .env.example を .env.local にコピー
+make setup-tools
+
 # 依存関係のインストール
 make install
 
