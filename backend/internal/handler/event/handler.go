@@ -3,10 +3,12 @@ package event
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/google/uuid"
 	"github.com/tamaco489/realtime-event-platform/backend/internal/library/notifier"
 	"github.com/tamaco489/realtime-event-platform/backend/internal/library/store"
 )
@@ -58,7 +60,15 @@ func (h *Handler) processRecord(ctx context.Context, record events.SQSMessage) e
 		return err
 	}
 
-	if err := h.notifier.PublishEvent(ctx, msg.EventType, msg.Payload); err != nil {
+	orderID, err := uuid.NewV7()
+	if err != nil {
+		return fmt.Errorf("failed to generate order_id: %w", err)
+	}
+	publishPayload := map[string]any{
+		"order_id": "ord-" + orderID.String(),
+		"status":   "confirmed",
+	}
+	if err := h.notifier.PublishEvent(ctx, msg.EventType, publishPayload); err != nil {
 		return err
 	}
 
