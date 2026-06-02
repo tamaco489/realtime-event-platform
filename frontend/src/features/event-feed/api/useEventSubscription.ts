@@ -28,22 +28,12 @@ function buildEventItem(event_type: string, payload: Record<string, unknown>): E
   };
 }
 
-/** モック用のダミー EventItem を生成する */
-function buildMockEventItem(): EventItem {
-  const eventTypes = ["order.created", "order.updated", "order.cancelled"];
-  const event_type = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-  return buildEventItem(event_type, {
-    order_id: crypto.randomUUID(),
-    amount: Math.floor(Math.random() * 10000),
-  });
-}
-
 /**
  * AppSync Events WebSocket サブスクリプション カスタムフック
  *
- * マウント時に `default/events` チャンネルへ接続し、受信イベントを useEventFeedStore に追加する。
+ * マウント時に `tickets/orders` チャンネルへ接続し、受信イベントを useEventFeedStore に追加する。
  * アンマウント時に自動でチャンネルを close する。
- * VITE_APP_ENV が "prd" 以外のときはモックを使用し、3 秒ごとにダミーイベントを生成する。
+ * VITE_APP_ENV が "local" のときは接続しない。イベント追加は postTicketOrder が直接行う。
  *
  * @returns error - 接続エラーメッセージ。正常時は null
  */
@@ -56,7 +46,7 @@ export function useEventSubscription(): { error: string | null } {
       case "prd":
         return subscribeChannel(addEvent, setError);
       case "local":
-        return startMock(addEvent);
+        return;
       default:
         throw new Error(`Unknown VITE_APP_ENV: ${import.meta.env.VITE_APP_ENV}`);
     }
@@ -76,11 +66,11 @@ function subscribeChannel(
   addEvent: (item: EventItem) => void,
   setError: (msg: string) => void
 ): () => void {
-  console.log("[Subscription] 開始: default/events");
+  console.log("[Subscription] 開始: tickets/orders");
   let channel: EventsChannel | null = null;
 
   events
-    .connect("default/events")
+    .connect("tickets/orders")
     .then((ch) => {
       channel = ch;
       ch.subscribe({
@@ -102,33 +92,5 @@ function subscribeChannel(
   return () => {
     console.log("[Subscription] 終了");
     channel?.close();
-  };
-}
-
-/**
- * 3 秒ごとにダミーイベントを生成するモックサブスクリプションを開始する
- *
- * maxEvents 件に達したらインターバルを自動停止する。
- *
- * @param addEvent - 生成したイベントをストアに追加するコールバック
- * @returns インターバルをクリアするクリーンアップ関数
- */
-function startMock(addEvent: (item: EventItem) => void): () => void {
-  const maxEvents = 5;
-  console.log("[Subscription] mock モードで起動");
-  let count = 0;
-  const timer = setInterval(() => {
-    if (count >= maxEvents) {
-      clearInterval(timer);
-      return;
-    }
-    const item = buildMockEventItem();
-    console.log("[Subscription] mock next:", JSON.stringify(item));
-    addEvent(item);
-    count++;
-  }, 3000);
-  return () => {
-    console.log("[Subscription] mock 終了");
-    clearInterval(timer);
   };
 }
