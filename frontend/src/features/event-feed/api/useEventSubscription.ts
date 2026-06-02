@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import type { EventsChannel } from "aws-amplify/api";
+
 import { events } from "@shared/api/appsync";
-import { type EventItem, useEventFeedStore } from "@features/event-feed/model/store";
+import { buildEventItem } from "@features/event-feed/model/buildEventItem";
+import type { EventItem } from "@features/event-feed/model/store";
+import { useEventFeedStore } from "@features/event-feed/model/store";
 
 /** AppSync Events チャンネルの受信データ型 */
 interface ReceivedEvent {
@@ -10,21 +13,6 @@ interface ReceivedEvent {
   event: {
     event_type: string;
     payload: Record<string, unknown>;
-  };
-}
-
-/**
- * 受信データから EventItem を生成する
- *
- * @param event_type - イベント種別
- * @param payload - イベントペイロード
- */
-function buildEventItem(event_type: string, payload: Record<string, unknown>): EventItem {
-  return {
-    event_id: crypto.randomUUID(),
-    event_type,
-    payload: JSON.stringify(payload, null, 2),
-    created_at: Math.floor(Date.now() / 1000),
   };
 }
 
