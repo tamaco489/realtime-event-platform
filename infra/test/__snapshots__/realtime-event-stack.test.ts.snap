@@ -16,17 +16,42 @@ exports[`snapshot 1`] = `
       "Description": "AppSync API key",
       "Value": {
         "Fn::GetAtt": [
-          "AppSyncApiDefaultApiKey4C5F84B8",
+          "AppSyncApiEventApiDefaultApiKey08379DAC",
           "ApiKey",
         ],
       },
     },
-    "AppSyncUrl": {
-      "Description": "AppSync GraphQL endpoint URL",
+    "AppSyncHttpUrl": {
+      "Description": "AppSync Events HTTP Publish endpoint URL",
       "Value": {
-        "Fn::GetAtt": [
-          "AppSyncApiEBDAEC17",
-          "GraphQLUrl",
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Fn::GetAtt": [
+                "AppSyncApiEventApi221F19CE",
+                "Dns.Http",
+              ],
+            },
+          ],
+        ],
+      },
+    },
+    "AppSyncRealtimeUrl": {
+      "Description": "AppSync Events WebSocket endpoint URL",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "wss://",
+            {
+              "Fn::GetAtt": [
+                "AppSyncApiEventApi221F19CE",
+                "Dns.Realtime",
+              ],
+            },
+          ],
         ],
       },
     },
@@ -291,120 +316,57 @@ exports[`snapshot 1`] = `
       },
       "Type": "AWS::IAM::Policy",
     },
-    "AppSyncApiDefaultApiKey4C5F84B8": {
-      "DependsOn": [
-        "AppSyncApiSchemaD3A1C979",
-      ],
+    "AppSyncApiEventApi221F19CE": {
+      "Properties": {
+        "EventConfig": {
+          "AuthProviders": [
+            {
+              "AuthType": "API_KEY",
+            },
+          ],
+          "ConnectionAuthModes": [
+            {
+              "AuthType": "API_KEY",
+            },
+          ],
+          "DefaultPublishAuthModes": [
+            {
+              "AuthType": "API_KEY",
+            },
+          ],
+          "DefaultSubscribeAuthModes": [
+            {
+              "AuthType": "API_KEY",
+            },
+          ],
+        },
+        "Name": "dev-realtime-event-api",
+      },
+      "Type": "AWS::AppSync::Api",
+    },
+    "AppSyncApiEventApiDefaultApiKey08379DAC": {
       "Properties": {
         "ApiId": {
           "Fn::GetAtt": [
-            "AppSyncApiEBDAEC17",
+            "AppSyncApiEventApi221F19CE",
             "ApiId",
           ],
         },
       },
       "Type": "AWS::AppSync::ApiKey",
     },
-    "AppSyncApiEBDAEC17": {
-      "Properties": {
-        "AuthenticationType": "API_KEY",
-        "Name": "dev-realtime-event-api",
-      },
-      "Type": "AWS::AppSync::GraphQLApi",
-    },
-    "AppSyncApiNoneDataSourceCC553A95": {
+    "AppSyncApiEventApidefault23DFAB24": {
       "Properties": {
         "ApiId": {
           "Fn::GetAtt": [
-            "AppSyncApiEBDAEC17",
+            "AppSyncApiEventApi221F19CE",
             "ApiId",
           ],
         },
-        "Description": "Passthrough data source for publishEvent mutation",
-        "Name": "devrealtimeeventnoneds",
-        "Type": "NONE",
+        "HandlerConfigs": {},
+        "Name": "default",
       },
-      "Type": "AWS::AppSync::DataSource",
-    },
-    "AppSyncApiPublishEventResolverE8D8B0A6": {
-      "DependsOn": [
-        "AppSyncApiNoneDataSourceCC553A95",
-        "AppSyncApiSchemaD3A1C979",
-      ],
-      "Properties": {
-        "ApiId": {
-          "Fn::GetAtt": [
-            "AppSyncApiEBDAEC17",
-            "ApiId",
-          ],
-        },
-        "Code": "
-        export function request(ctx) { return { payload: ctx.args.input }; }
-        export function response(ctx) {
-          return {
-            event_id: util.autoId(),
-            event_type: ctx.result.event_type,
-            payload: ctx.result.payload,
-            created_at: util.time.nowEpochSeconds(),
-          };
-        }
-      ",
-        "DataSourceName": "devrealtimeeventnoneds",
-        "FieldName": "publishEvent",
-        "Kind": "UNIT",
-        "Runtime": {
-          "Name": "APPSYNC_JS",
-          "RuntimeVersion": "1.0.0",
-        },
-        "TypeName": "Mutation",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "AppSyncApiSchemaD3A1C979": {
-      "Properties": {
-        "ApiId": {
-          "Fn::GetAtt": [
-            "AppSyncApiEBDAEC17",
-            "ApiId",
-          ],
-        },
-        "Definition": "# イベントの基本情報を表す型
-type Event {
-  event_id: String! # イベント固有 ID
-  event_type: String! # イベント種別 (例: order.created)
-  payload: String! # イベントペイロード (JSON 文字列)
-  created_at: AWSTimestamp! # イベント発生日時 (Unix タイムスタンプ, 秒)
-}
-
-# publishEvent Mutation の入力型
-input PublishEventInput {
-  event_type: String! # イベント種別
-  payload: String! # イベントペイロード (JSON 文字列)
-}
-
-type Mutation {
-  # イベントを AppSync へ Publish し、Subscription に Push する
-  publishEvent(input: PublishEventInput!): Event
-}
-
-type Subscription {
-  # publishEvent Mutation が呼ばれたときにフロントエンドへリアルタイム Push する
-  onEventReceived: Event @aws_subscribe(mutations: ["publishEvent"])
-}
-
-# AppSync は Query 型が必須のため placeholder を定義する
-type Query {
-  placeholder: String
-}
-
-schema {
-  query: Query
-  mutation: Mutation
-  subscription: Subscription
-}
-",
-      },
-      "Type": "AWS::AppSync::GraphQLSchema",
+      "Type": "AWS::AppSync::ChannelNamespace",
     },
     "CloudFrontS3Bucket73FAB78F": {
       "DeletionPolicy": "Delete",
@@ -693,14 +655,23 @@ schema {
           "Variables": {
             "APPSYNC_API_KEY": {
               "Fn::GetAtt": [
-                "AppSyncApiDefaultApiKey4C5F84B8",
+                "AppSyncApiEventApiDefaultApiKey08379DAC",
                 "ApiKey",
               ],
             },
+            "APPSYNC_CHANNEL": "default/events",
             "APPSYNC_ENDPOINT": {
-              "Fn::GetAtt": [
-                "AppSyncApiEBDAEC17",
-                "GraphQLUrl",
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "AppSyncApiEventApi221F19CE",
+                      "Dns.Http",
+                    ],
+                  },
+                ],
               ],
             },
             "APP_ENV": "dev",
@@ -815,20 +786,12 @@ schema {
               ],
             },
             {
-              "Action": "appsync:GraphQL",
+              "Action": "appsync:EventPublish",
               "Effect": "Allow",
               "Resource": {
-                "Fn::Join": [
-                  "",
-                  [
-                    {
-                      "Fn::GetAtt": [
-                        "AppSyncApiEBDAEC17",
-                        "Arn",
-                      ],
-                    },
-                    "/types/Mutation/fields/publishEvent",
-                  ],
+                "Fn::GetAtt": [
+                  "AppSyncApiEventApidefault23DFAB24",
+                  "ChannelNamespaceArn",
                 ],
               },
             },

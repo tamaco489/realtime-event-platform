@@ -25,7 +25,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	n, err := notifier.NewNotifier(ctx, cfg.App.Env, cfg.Notifier.Endpoint, cfg.Notifier.APIKey)
+	n, err := notifier.NewNotifier(
+		ctx,
+		cfg.App.Env,
+		cfg.Notifier.Endpoint,
+		cfg.Notifier.Channel,
+		cfg.Notifier.APIKey,
+	)
 	if err != nil {
 		log.Fatal(err)
 	}

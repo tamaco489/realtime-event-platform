@@ -51,9 +51,10 @@ export class RealtimeEventStack extends cdk.Stack {
       envName: props.config.envName,
       queue: sqsQueue.queue,
       table: dynamoDbTable.table,
-      appSyncArn: appSyncApi.api.arn,
-      appSyncUrl: appSyncApi.api.graphqlUrl,
-      appSyncApiKey: appSyncApi.api.apiKey ?? "",
+      channelNamespace: appSyncApi.channelNamespace,
+      appSyncUrl: `https://${appSyncApi.api.httpDns}`,
+      appSyncChannel: "default/events",
+      appSyncApiKey: appSyncApi.api.apiKeys["Default"].attrApiKey,
       lambdaMemorySize: props.config.lambdaMemorySize,
       artifactsBucketName: props.config.artifactsBucketName,
     });

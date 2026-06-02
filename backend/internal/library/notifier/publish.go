@@ -10,44 +10,28 @@ import (
 	"net/http"
 )
 
-const publishEventMutation = `mutation PublishEvent($input: PublishEventInput!) { publishEvent(input: $input) { event_id event_type payload created_at } }`
-
-type publishEventInput struct {
-	Payload   string `json:"payload"`
-	EventType string `json:"event_type"`
+type eventsRequest struct {
+	Events []string `json:"events"`
 }
 
-type publishVariables struct {
-	Input publishEventInput `json:"input"`
-}
-
-type graphQLRequest struct {
-	Query     string           `json:"query"`
-	Variables publishVariables `json:"variables"`
+type eventData struct {
+	Payload   map[string]any `json:"payload"`
+	EventType string         `json:"event_type"`
 }
 
 func (n *notifier) PublishEvent(ctx context.Context, eventType string, payload map[string]any) error {
-	payloadJSON, err := json.Marshal(payload)
+	edJSON, err := json.Marshal(eventData{EventType: eventType, Payload: payload})
 	if err != nil {
-		return fmt.Errorf("appsync: failed to marshal payload: %w", err)
+		return fmt.Errorf("appsync: failed to marshal event: %w", err)
 	}
 
-	reqBody := graphQLRequest{
-		Query: publishEventMutation,
-		Variables: publishVariables{
-			Input: publishEventInput{
-				Payload:   string(payloadJSON),
-				EventType: eventType,
-			},
-		},
-	}
-
-	body, err := json.Marshal(reqBody)
+	body, err := json.Marshal(eventsRequest{Events: []string{string(edJSON)}})
 	if err != nil {
-		return err
+		return fmt.Errorf("appsync: failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, n.endpoint, bytes.NewReader(body))
+	url := n.endpoint + "/event/" + n.channel
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
 		return err
 	}
@@ -72,18 +56,6 @@ func (n *notifier) PublishEvent(ctx context.Context, eventType string, payload m
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("appsync: unexpected status %d", resp.StatusCode)
-	}
-
-	var gqlResp struct {
-		Errors []struct {
-			Message string `json:"message"`
-		} `json:"errors"`
-	}
-	if err := json.Unmarshal(respBody, &gqlResp); err != nil {
-		return fmt.Errorf("appsync: failed to parse response: %w", err)
-	}
-	if len(gqlResp.Errors) > 0 {
-		return fmt.Errorf("appsync: graphql error: %s", gqlResp.Errors[0].Message)
 	}
 
 	return nil

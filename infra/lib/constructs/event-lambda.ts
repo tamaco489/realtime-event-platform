@@ -1,4 +1,5 @@
 import * as cdk from "aws-cdk-lib";
+import * as appsync from "aws-cdk-lib/aws-appsync";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
@@ -14,7 +15,9 @@ import { Construct } from "constructs";
  * @property envName - 環境名。リソースの命名に使用する
  * @property queue - SQS メインキュー。イベントソースとして設定する
  * @property table - DynamoDB イベントテーブル。書き込み権限を付与する
- * @property appSyncUrl - AppSync GraphQL エンドポイント URL
+ * @property channelNamespace - AppSync Events チャンネル名前空間。EventPublish 権限の付与に使用する
+ * @property appSyncUrl - AppSync Events HTTP Publish ベース URL (https://<http-dns>)
+ * @property appSyncChannel - AppSync Events チャンネルパス (例: default/events)
  * @property appSyncApiKey - AppSync API キー
  * @property lambdaMemorySize - Lambda 関数のメモリサイズ (MB)
  * @property artifactsBucketName - Lambda ビルド成果物を格納する S3 バケット名
@@ -23,8 +26,9 @@ interface EventLambdaProps {
   readonly envName: string;
   readonly queue: sqs.Queue;
   readonly table: dynamodb.Table;
-  readonly appSyncArn: string;
+  readonly channelNamespace: appsync.ChannelNamespace;
   readonly appSyncUrl: string;
+  readonly appSyncChannel: string;
   readonly appSyncApiKey: string;
   readonly lambdaMemorySize: number;
   readonly artifactsBucketName: string;
@@ -80,6 +84,7 @@ export class EventLambda extends Construct {
         EVENT_SERVICE_NAME: `${props.envName}-realtime-event-event`,
         APPSYNC_API_KEY: props.appSyncApiKey,
         APPSYNC_ENDPOINT: props.appSyncUrl,
+        APPSYNC_CHANNEL: props.appSyncChannel,
         DYNAMODB_TABLE_NAME: props.table.tableName,
       },
     });
@@ -92,12 +97,12 @@ export class EventLambda extends Construct {
     // DynamoDB テーブルへの書き込み権限を付与
     props.table.grantWriteData(this.fn);
 
-    // AppSync API への Mutation 実行権限を特定の API ARN に限定して付与
+    // チャンネル名前空間への EventPublish 権限を付与 (ARN で特定の名前空間に限定する)
     this.fn.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: ["appsync:GraphQL"],
-        resources: [`${props.appSyncArn}/types/Mutation/fields/publishEvent`],
+        actions: ["appsync:EventPublish"],
+        resources: [props.channelNamespace.channelNamespaceArn],
       }),
     );
 
