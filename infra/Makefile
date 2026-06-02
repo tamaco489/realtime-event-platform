@@ -25,7 +25,7 @@ diff: build
 	ENV=$(ENV) AWS_PROFILE=$(AWS_PROFILE) npx cdk diff
 
 deploy: build
-	ENV=$(ENV) AWS_PROFILE=$(AWS_PROFILE) npx cdk deploy --require-approval any
+	ENV=$(ENV) AWS_PROFILE=$(AWS_PROFILE) npx cdk deploy --require-approval any-change
 
 destroy:
 	ENV=$(ENV) AWS_PROFILE=$(AWS_PROFILE) npx cdk destroy --force

@@ -11,7 +11,8 @@ import (
 )
 
 type eventsRequest struct {
-	Events []string `json:"events"`
+	Channel string   `json:"channel"`
+	Events  []string `json:"events"`
 }
 
 type eventData struct {
@@ -25,12 +26,15 @@ func (n *notifier) PublishEvent(ctx context.Context, eventType string, payload m
 		return fmt.Errorf("appsync: failed to marshal event: %w", err)
 	}
 
-	body, err := json.Marshal(eventsRequest{Events: []string{string(edJSON)}})
+	body, err := json.Marshal(eventsRequest{
+		Channel: n.channel,
+		Events:  []string{string(edJSON)},
+	})
 	if err != nil {
 		return fmt.Errorf("appsync: failed to marshal request: %w", err)
 	}
 
-	url := n.endpoint + "/event/" + n.channel
+	url := n.endpoint + "/event"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
 		return err
