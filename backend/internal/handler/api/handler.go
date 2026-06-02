@@ -14,9 +14,17 @@ func NewHandler(p producer.Producer) *Handler {
 	return &Handler{producer: p}
 }
 
-type postEventsRequest struct {
-	EventType string          `json:"event_type"`
-	Payload   json.RawMessage `json:"payload"`
+type postTicketOrderRequest struct {
+	EventID   string `json:"event_id"`
+	EventName string `json:"event_name"`
+	SeatType  string `json:"seat_type"`
+	Quantity  int    `json:"quantity"`
+	Amount    int    `json:"amount"`
+}
+
+type sqsMessage struct {
+	EventType string         `json:"event_type"`
+	Payload   map[string]any `json:"payload"`
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -26,24 +34,34 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	var req postEventsRequest
+	var req postTicketOrderRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSONError(w, "invalid JSON body", http.StatusBadRequest)
 		return
 	}
 
-	if req.EventType == "" {
-		writeJSONError(w, "event_type is required", http.StatusBadRequest)
+	if req.EventID == "" || req.EventName == "" || req.SeatType == "" {
+		writeJSONError(w, "event_id, event_name and seat_type are required", http.StatusBadRequest)
 		return
 	}
 
-	var payloadMap map[string]interface{}
-	if err := json.Unmarshal(req.Payload, &payloadMap); err != nil || len(payloadMap) == 0 {
-		writeJSONError(w, "payload must not be empty", http.StatusBadRequest)
+	if req.Quantity <= 0 || req.Amount <= 0 {
+		writeJSONError(w, "quantity and amount must be greater than 0", http.StatusBadRequest)
 		return
 	}
 
-	body, err := json.Marshal(req)
+	msg := sqsMessage{
+		EventType: "created",
+		Payload: map[string]any{
+			"event_id":   req.EventID,
+			"event_name": req.EventName,
+			"seat_type":  req.SeatType,
+			"quantity":   req.Quantity,
+			"amount":     req.Amount,
+		},
+	}
+
+	body, err := json.Marshal(msg)
 	if err != nil {
 		writeJSONError(w, "failed to marshal request", http.StatusInternalServerError)
 		return

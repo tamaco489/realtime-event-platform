@@ -28,11 +28,11 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		wantStatus  int
 	}{
 		"正常系_有効なリクエスト": {
-			body:       `{"event_type":"test","payload":{"key":"value"}}`,
+			body:       `{"event_id":"evt-001","event_name":"技術カンファレンス 2026","seat_type":"general","quantity":1,"amount":5000}`,
 			wantStatus: http.StatusAccepted,
 		},
-		"正常系_payload_にデータを含む": {
-			body:       `{"event_type":"user.created","payload":{"user_id":"u-001"}}`,
+		"正常系_vip席": {
+			body:       `{"event_id":"evt-002","event_name":"音楽フェス 2026","seat_type":"vip","quantity":2,"amount":20000}`,
 			wantStatus: http.StatusAccepted,
 		},
 		"異常系_不正な_JSON": {
@@ -40,28 +40,33 @@ func TestHandler_ServeHTTP(t *testing.T) {
 			wantStatus: http.StatusBadRequest,
 			wantError:  "invalid JSON body",
 		},
-		"異常系_event_type_が空": {
-			body:       `{"event_type":"","payload":{}}`,
+		"異常系_event_id_が空": {
+			body:       `{"event_id":"","event_name":"技術カンファレンス 2026","seat_type":"general","quantity":1,"amount":5000}`,
 			wantStatus: http.StatusBadRequest,
-			wantError:  "event_type is required",
+			wantError:  "event_id, event_name and seat_type are required",
 		},
-		"異常系_event_type_が欠落": {
-			body:       `{"payload":{}}`,
+		"異常系_event_name_が空": {
+			body:       `{"event_id":"evt-001","event_name":"","seat_type":"general","quantity":1,"amount":5000}`,
 			wantStatus: http.StatusBadRequest,
-			wantError:  "event_type is required",
+			wantError:  "event_id, event_name and seat_type are required",
 		},
-		"異常系_payload_が空": {
-			body:       `{"event_type":"test","payload":{}}`,
+		"異常系_seat_type_が空": {
+			body:       `{"event_id":"evt-001","event_name":"技術カンファレンス 2026","seat_type":"","quantity":1,"amount":5000}`,
 			wantStatus: http.StatusBadRequest,
-			wantError:  "payload must not be empty",
+			wantError:  "event_id, event_name and seat_type are required",
 		},
-		"異常系_payload_が欠落": {
-			body:       `{"event_type":"test"}`,
+		"異常系_quantity_が0": {
+			body:       `{"event_id":"evt-001","event_name":"技術カンファレンス 2026","seat_type":"general","quantity":0,"amount":5000}`,
 			wantStatus: http.StatusBadRequest,
-			wantError:  "payload must not be empty",
+			wantError:  "quantity and amount must be greater than 0",
+		},
+		"異常系_amount_が0": {
+			body:       `{"event_id":"evt-001","event_name":"技術カンファレンス 2026","seat_type":"general","quantity":1,"amount":0}`,
+			wantStatus: http.StatusBadRequest,
+			wantError:  "quantity and amount must be greater than 0",
 		},
 		"異常系_SQS_送信エラー": {
-			body:        `{"event_type":"test","payload":{"key":"value"}}`,
+			body:        `{"event_id":"evt-001","event_name":"技術カンファレンス 2026","seat_type":"general","quantity":1,"amount":5000}`,
 			producerErr: errors.New("sqs error"),
 			wantStatus:  http.StatusInternalServerError,
 			wantError:   "failed to send message",
@@ -73,7 +78,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 			t.Parallel()
 
 			h := NewHandler(&mockProducer{err: tt.producerErr})
-			req := httptest.NewRequest(http.MethodPost, "/events", strings.NewReader(tt.body))
+			req := httptest.NewRequest(http.MethodPost, "/v1/tickets/orders", strings.NewReader(tt.body))
 			req.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 

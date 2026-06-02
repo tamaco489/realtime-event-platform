@@ -24,7 +24,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("POST /events", api.NewHandler(p))
+	mux.Handle("POST /v1/tickets/orders", api.NewHandler(p))
 
 	log.Printf("service=%s started on :%s", cfg.App.ServiceName, cfg.App.Port)
 
