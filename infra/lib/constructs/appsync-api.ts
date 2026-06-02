@@ -22,9 +22,11 @@ interface AppSyncApiProps {
 export class AppSyncApi extends Construct {
   /** AppSync Events API インスタンス */
   readonly api: appsync.EventApi;
+
   /** デフォルトチャンネル名前空間 */
   readonly channelNamespace: appsync.ChannelNamespace;
 
+  // AppSync Events API を定義
   constructor(scope: Construct, id: string, props: AppSyncApiProps) {
     super(scope, id);
 
@@ -42,7 +44,7 @@ export class AppSyncApi extends Construct {
       },
     });
 
-    this.channelNamespace = this.api.addChannelNamespace("default");
+    this.channelNamespace = this.api.addChannelNamespace("tickets");
 
     // HTTP Publish エンドポイント (バックエンド Lambda の APPSYNC_ENDPOINT 環境変数に設定する)
     new cdk.CfnOutput(scope, "AppSyncHttpUrl", {
