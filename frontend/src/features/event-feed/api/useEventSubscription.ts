@@ -1,38 +1,26 @@
 import { useEffect, useState } from "react";
 
-import { appSyncClient } from "@shared/api/appsync";
+import type { EventsChannel } from "aws-amplify/api";
+
+import { events } from "@shared/api/appsync";
 
 import { type EventItem, useEventFeedStore } from "@features/event-feed/model/store";
 
-const ON_EVENT_RECEIVED = /* GraphQL */ `
-  subscription OnEventReceived {
-    onEventReceived {
-      event_id
-      event_type
-      payload
-      created_at
-    }
-  }
-`;
-
-/** AppSync Subscription のレスポンス型 */
-interface SubscriptionResponse {
-  data: { onEventReceived: EventItem | null };
-}
-
-/** graphql() が Subscription のとき返す Observable 互換の型 */
-interface SubscriptionObservable {
-  subscribe(handlers: {
-    next: (value: SubscriptionResponse) => void;
-    error: (error: unknown) => void;
-  }): { unsubscribe(): void };
+/** AppSync Events チャンネルの受信データ型 */
+interface ReceivedEvent {
+  id: string;
+  type: string;
+  event: {
+    event_type: string;
+    payload: Record<string, unknown>;
+  };
 }
 
 /**
- * AppSync onEventReceived Subscription カスタムフック
+ * AppSync Events WebSocket サブスクリプション カスタムフック
  *
- * マウント時に Subscription を開始し、受信イベントを useEventFeedStore に追加する。
- * アンマウント時に自動で unsubscribe する。
+ * マウント時に `default/events` チャンネルへ接続し、受信イベントを useEventFeedStore に追加する。
+ * アンマウント時に自動でチャンネルを close する。
  *
  * @returns error - 接続エラーメッセージ。正常時は null
  */
@@ -41,27 +29,39 @@ export function useEventSubscription(): { error: string | null } {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("[Subscription] 開始: onEventReceived");
+    console.log("[Subscription] 開始: default/events");
+    let channel: EventsChannel | null = null;
 
-    const observable = appSyncClient.graphql({
-      query: ON_EVENT_RECEIVED,
-    }) as unknown as SubscriptionObservable;
-
-    const sub = observable.subscribe({
-      next: ({ data }) => {
-        console.log("[Subscription] next:", JSON.stringify(data));
-        const item = data?.onEventReceived;
-        if (item) addEvent(item);
-      },
-      error: (err) => {
-        console.error("[Subscription] error:", err);
-        setError(err instanceof Error ? err.message : "Subscription 接続に失敗しました");
-      },
-    });
+    events
+      .connect("default/events")
+      .then((ch) => {
+        channel = ch;
+        ch.subscribe({
+          next: (data: ReceivedEvent) => {
+            console.log("[Subscription] next:", JSON.stringify(data));
+            const { event_type, payload } = data.event;
+            const item: EventItem = {
+              event_id: crypto.randomUUID(),
+              event_type,
+              payload: JSON.stringify(payload, null, 2),
+              created_at: Math.floor(Date.now() / 1000),
+            };
+            addEvent(item);
+          },
+          error: (err: unknown) => {
+            console.error("[Subscription] error:", err);
+            setError(err instanceof Error ? err.message : "Subscription 接続に失敗しました");
+          },
+        });
+      })
+      .catch((err: unknown) => {
+        console.error("[Subscription] connect error:", err);
+        setError(err instanceof Error ? err.message : "WebSocket 接続に失敗しました");
+      });
 
     return () => {
       console.log("[Subscription] 終了");
-      sub.unsubscribe();
+      channel?.close();
     };
   }, [addEvent]);
 
