@@ -28,7 +28,7 @@ deploy: build
 	ENV=$(ENV) AWS_PROFILE=$(AWS_PROFILE) npx cdk deploy --require-approval any-change
 
 destroy:
-	ENV=$(ENV) AWS_PROFILE=$(AWS_PROFILE) npx cdk destroy --force
+	ENV=$(ENV) AWS_PROFILE=$(AWS_PROFILE) npx cdk destroy
 
 
 .PHONY: bootstrap
