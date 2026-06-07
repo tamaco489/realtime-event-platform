@@ -9,6 +9,7 @@ import (
 type APIConfig struct {
 	App      APIAppConfig
 	Producer ProducerConfig
+	Auth     AuthConfig
 }
 
 type APIAppConfig struct {
@@ -18,7 +19,12 @@ type APIAppConfig struct {
 }
 
 type ProducerConfig struct {
-	QueueURL string `env:"SQS_QUEUE_URL"`
+	QueueURL string `env:"SQS_QUEUE_URL,required,notEmpty"`
+}
+
+type AuthConfig struct {
+	Region     string `env:"COGNITO_REGION,required,notEmpty"`
+	UserPoolID string `env:"COGNITO_USER_POOL_ID,required,notEmpty"`
 }
 
 func APILoad() (*APIConfig, error) {
