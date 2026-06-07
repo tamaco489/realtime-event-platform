@@ -17,6 +17,7 @@ mod: fmt
 build: mod
 	$(BUILD_OPTS) go build -trimpath -o build/api/bootstrap ./cmd/api
 	$(BUILD_OPTS) go build -trimpath -o build/event/bootstrap ./cmd/event
+	$(BUILD_OPTS) go build -trimpath -o build/authorizer/bootstrap ./cmd/authorizer
 
 lint:
 	golangci-lint run ./...
@@ -50,7 +51,7 @@ invoke-event:
 
 S3_BUCKET   ?= $(ENV)-realtime-event-storage
 
-.PHONY: upload-api upload-event upload update-api update-event
+.PHONY: upload-api upload-event upload-authorizer upload update-api update-event
 upload-api:
 	$(BUILD_OPTS) go build -trimpath -o build/api/bootstrap ./cmd/api
 	zip -j build/api/bootstrap.zip build/api/bootstrap
@@ -61,7 +62,12 @@ upload-event:
 	zip -j build/event/bootstrap.zip build/event/bootstrap
 	aws s3 cp build/event/bootstrap.zip s3://$(S3_BUCKET)/artifacts/event/bootstrap.zip --profile $(AWS_PROFILE)
 
-upload: upload-api upload-event
+upload-authorizer:
+	$(BUILD_OPTS) go build -trimpath -o build/authorizer/bootstrap ./cmd/authorizer
+	zip -j build/authorizer/bootstrap.zip build/authorizer/bootstrap
+	aws s3 cp build/authorizer/bootstrap.zip s3://$(S3_BUCKET)/artifacts/authorizer/bootstrap.zip --profile $(AWS_PROFILE)
+
+upload: upload-api upload-event upload-authorizer
 
 deploy-api: upload-api
 	aws lambda update-function-code \
