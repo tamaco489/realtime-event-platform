@@ -30,12 +30,13 @@ func main() {
 		cfg.App.Env,
 		cfg.Notifier.Endpoint,
 		cfg.Notifier.Channel,
-		cfg.Notifier.APIKey,
+		cfg.Notifier.Region,
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	h := event.NewHandler(s, n)
+
 	lambda.Start(h.Handle)
 }

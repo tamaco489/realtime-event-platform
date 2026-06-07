@@ -3,7 +3,7 @@
     {
       "messageId": "test-message-id-1",
       "receiptHandle": "test-receipt-handle",
-      "body": "{\"event_type\":\"user.created\",\"payload\":{\"user_id\":\"u-001\",\"name\":\"tamaco\"}}",
+      "body": "{\"event_type\":\"tickets.ordered\",\"tenant_id\":\"tenant-xxx01\",\"user_id\":\"user-001\",\"payload\":{\"event_id\":\"evt-001\",\"event_name\":\"技術カンファレンス 2026\",\"seat_type\":\"general\",\"quantity\":2,\"amount\":10000}}",
       "attributes": {
         "ApproximateReceiveCount": "1",
         "SentTimestamp": "1745982649183"

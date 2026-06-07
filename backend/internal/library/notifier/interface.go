@@ -3,5 +3,5 @@ package notifier
 import "context"
 
 type EventPublisher interface {
-	PublishEvent(ctx context.Context, eventType string, payload map[string]any) error
+	PublishEvent(ctx context.Context, eventType string, payload map[string]any, tenantID, userID string) error
 }

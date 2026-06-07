@@ -23,7 +23,7 @@ type ProducerConfig struct {
 }
 
 type AuthConfig struct {
-	Region     string `env:"COGNITO_REGION,required,notEmpty"`
+	Region     string `env:"AWS_REGION,required,notEmpty"`
 	UserPoolID string `env:"COGNITO_USER_POOL_ID,required,notEmpty"`
 }
 

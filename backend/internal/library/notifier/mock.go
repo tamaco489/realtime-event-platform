@@ -7,7 +7,7 @@ import (
 
 type mockPublisher struct{}
 
-func (m *mockPublisher) PublishEvent(_ context.Context, eventType string, payload map[string]any) error {
-	log.Printf("[MOCK] AppSync PublishEvent: event_type=%s payload=%v\n", eventType, payload)
+func (m *mockPublisher) PublishEvent(_ context.Context, eventType string, payload map[string]any, tenantID, userID string) error {
+	log.Printf("[MOCK] AppSync PublishEvent: tenant_id=%s user_id=%s event_type=%s payload=%v\n", tenantID, userID, eventType, payload)
 	return nil
 }
