@@ -13,23 +13,16 @@ import (
 	"time"
 )
 
-// eventsRequest は AppSync Events HTTP Publish API のリクエストボディ
 type eventsRequest struct {
-	// Channel は Publish 先のチャンネルパス
-	Channel string `json:"channel"`
-	// Events は Publish するイベントの JSON 文字列リスト
-	Events []string `json:"events"`
+	Channel string   `json:"channel"`
+	Events  []string `json:"events"`
 }
 
-// eventData は AppSync に Publish するイベントの本体
 type eventData struct {
-	// Payload はイベント固有のデータ
-	Payload map[string]any `json:"payload"`
-	// EventType はイベントの種別名
-	EventType string `json:"event_type"`
+	Payload   map[string]any `json:"payload"`
+	EventType string         `json:"event_type"`
 }
 
-// PublishEvent は指定テナント・ユーザーのチャンネルにイベントを Publish する
 func (n *notifier) PublishEvent(ctx context.Context, eventType string, payload map[string]any, tenantID, userID string) error {
 	edJSON, err := json.Marshal(eventData{EventType: eventType, Payload: payload})
 	if err != nil {
