@@ -1,8 +1,4 @@
-import { useState } from "react";
-
-import { authConfirmSignUp, authSignUp } from "../api";
-
-type Step = "form" | "confirm" | "done";
+import { useSignUpForm } from "@features/auth/model/useSignUpForm";
 
 interface Props {
   onComplete: () => void;
@@ -11,48 +7,17 @@ interface Props {
 /**
  * サインアップフォーム
  *
- * step 1: メール・パスワード・テナント ID・企業名を入力
- * step 2: メールに届いた確認コードを入力
- * step 3: 仮登録完了メッセージを表示
+ * ロジックは useSignUpForm に委譲し、レンダリングのみを担う。
+ *
+ * step による画面の切り替え:
+ * - form    : 初期状態。メール・パスワード・テナント ID・企業名を入力してサインアップを送信する
+ * - confirm : authSignUp 成功後。Cognito から届いた確認コードを入力して本人確認を行う
+ * - done    : authConfirmSignUp 成功後。仮登録完了を通知し、サインイン画面への導線を表示する
  */
 export function SignUpForm({ onComplete }: Props) {
-  const [step, setStep] = useState<Step>("form");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [tenantId, setTenantId] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [code, setCode] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { form, setField, step, loading, error, handleSignUp, handleConfirm } = useSignUpForm();
 
-  async function handleSignUp(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      await authSignUp({ email, password, tenantId, companyName });
-      setStep("confirm");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "サインアップに失敗しました");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleConfirm(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      await authConfirmSignUp(email, code);
-      setStep("done");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "確認コードの検証に失敗しました");
-    } finally {
-      setLoading(false);
-    }
-  }
-
+  // done: サインアップ完了の案内を表示
   if (step === "done") {
     return (
       <div className="text-center space-y-4">
@@ -72,19 +37,20 @@ export function SignUpForm({ onComplete }: Props) {
     );
   }
 
+  // confirm: 確認コード入力フォームを表示
   if (step === "confirm") {
     return (
       <form onSubmit={handleConfirm} className="space-y-4">
         <p className="text-sm text-gray-400">
-          {email} に確認コードを送信しました。メールを確認して入力してください。
+          {form.email} に確認コードを送信しました。メールを確認して入力してください。
         </p>
         <div>
           <label className="block text-sm text-gray-400 mb-1">確認コード</label>
           <input
             type="text"
             required
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
+            value={form.code}
+            onChange={(e) => setField("code", e.target.value)}
             className="w-full px-3 py-2 bg-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
@@ -100,6 +66,7 @@ export function SignUpForm({ onComplete }: Props) {
     );
   }
 
+  // form: サインアップフォームを表示
   return (
     <form onSubmit={handleSignUp} className="space-y-4">
       <div>
@@ -107,8 +74,8 @@ export function SignUpForm({ onComplete }: Props) {
         <input
           type="email"
           required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={form.email}
+          onChange={(e) => setField("email", e.target.value)}
           className="w-full px-3 py-2 bg-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
       </div>
@@ -117,8 +84,8 @@ export function SignUpForm({ onComplete }: Props) {
         <input
           type="password"
           required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={form.password}
+          onChange={(e) => setField("password", e.target.value)}
           className="w-full px-3 py-2 bg-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
       </div>
@@ -127,8 +94,8 @@ export function SignUpForm({ onComplete }: Props) {
         <input
           type="text"
           required
-          value={tenantId}
-          onChange={(e) => setTenantId(e.target.value)}
+          value={form.tenantId}
+          onChange={(e) => setField("tenantId", e.target.value)}
           className="w-full px-3 py-2 bg-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
       </div>
@@ -137,8 +104,8 @@ export function SignUpForm({ onComplete }: Props) {
         <input
           type="text"
           required
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
+          value={form.companyName}
+          onChange={(e) => setField("companyName", e.target.value)}
           className="w-full px-3 py-2 bg-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
       </div>

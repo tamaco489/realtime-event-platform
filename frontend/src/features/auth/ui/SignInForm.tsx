@@ -1,7 +1,4 @@
-import { useState } from "react";
-
-import { authSignIn, getAuthClaims } from "../api";
-import { useAuthStore } from "../model/store";
+import { useSignInForm } from "@features/auth/model/useSignInForm";
 
 interface Props {
   onSignedIn: () => void;
@@ -9,31 +6,10 @@ interface Props {
 
 /**
  * サインインフォーム (SRP 認証)
- *
- * サインイン成功後に ID Token の claims を取得し、Zustand ストアに保存する。
  */
 export function SignInForm({ onSignedIn }: Props) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const setAuth = useAuthStore((s) => s.setAuth);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      await authSignIn({ email, password });
-      const claims = await getAuthClaims();
-      setAuth(claims.tenantId, claims.userId);
-      onSignedIn();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "サインインに失敗しました");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { email, setEmail, password, setPassword, loading, error, handleSubmit } =
+    useSignInForm(onSignedIn);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

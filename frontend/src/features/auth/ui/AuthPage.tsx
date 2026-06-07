@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import { SignInForm } from "./SignInForm";
-import { SignUpForm } from "./SignUpForm";
+import { SignInForm } from "@features/auth/ui/SignInForm";
+import { SignUpForm } from "@features/auth/ui/SignUpForm";
 
 type Tab = "signin" | "signup";
 
