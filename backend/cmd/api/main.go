@@ -24,11 +24,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var v auth.Verifier
-	// ローカル環境では JWT 検証をスキップ
-	if !cfg.App.Env.IsLocal() {
-		v = auth.NewVerifier(cfg.Auth.Region, cfg.Auth.UserPoolID)
-	}
+	v := auth.NewVerifier(cfg.Auth.Region, cfg.Auth.UserPoolID)
 
 	mux := http.NewServeMux()
 	mux.Handle("POST /v1/tickets/orders", api.NewHandler(p, v, cfg.App.Env.IsLocal()))
