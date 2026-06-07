@@ -1,3 +1,4 @@
+import { config } from "@app/config";
 import { post } from "@shared/api/http";
 import { useEventFeedStore } from "@features/event-feed/model/store";
 
@@ -25,7 +26,7 @@ interface PostTicketOrderRequest {
  * "prd" のときは API Lambda へ HTTP リクエストを送信する。
  */
 export async function postTicketOrder(req: PostTicketOrderRequest): Promise<void> {
-  if (import.meta.env.VITE_APP_ENV === "local") {
+  if (config.appEnv === "local") {
     await new Promise((resolve) => setTimeout(resolve, 3000));
     useEventFeedStore.getState().addEvent({
       event_id: crypto.randomUUID(),
