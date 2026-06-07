@@ -51,7 +51,7 @@ invoke-event:
 
 S3_BUCKET   ?= $(ENV)-realtime-event-storage
 
-.PHONY: upload-api upload-event upload-authorizer upload update-api update-event
+.PHONY: upload-api upload-event upload-authorizer upload
 upload-api:
 	$(BUILD_OPTS) go build -trimpath -o build/api/bootstrap ./cmd/api
 	zip -j build/api/bootstrap.zip build/api/bootstrap
@@ -69,6 +69,8 @@ upload-authorizer:
 
 upload: upload-api upload-event upload-authorizer
 
+
+.PHONY: deploy-api deploy-event deploy-authorizer
 deploy-api: upload-api
 	aws lambda update-function-code \
 		--function-name $(ENV)-realtime-event-api \
@@ -82,3 +84,12 @@ deploy-event: upload-event
 		--s3-bucket $(S3_BUCKET) \
 		--s3-key artifacts/event/bootstrap.zip \
 		--profile $(AWS_PROFILE) | jq .
+
+deploy-authorizer: upload-authorizer
+	aws lambda update-function-code \
+		--function-name $(ENV)-realtime-event-authorizer \
+		--s3-bucket $(S3_BUCKET) \
+		--s3-key artifacts/authorizer/bootstrap.zip \
+		--profile $(AWS_PROFILE) | jq .
+
+deploy: deploy-api deploy-event deploy-authorizer
