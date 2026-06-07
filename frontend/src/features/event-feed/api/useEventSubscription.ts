@@ -6,7 +6,15 @@ import { buildEventItem } from "@features/event-feed/model/buildEventItem";
 import type { EventItem } from "@features/event-feed/model/store";
 import { useEventFeedStore } from "@features/event-feed/model/store";
 
-/** AppSync Events チャンネルの受信データ型 */
+/**
+ * AppSync Events チャンネルの受信データ型
+ *
+ * @property id - AppSync が付与するメッセージ ID
+ * @property type - メッセージ種別 (例: "data")
+ * @property event - イベント本体
+ * @property event.event_type - アプリケーション定義のイベント種別 (例: "ticket_ordered")
+ * @property event.payload - イベントペイロード
+ */
 interface ReceivedEvent {
   id: string;
   type: string;
