@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/tamaco489/realtime-event-platform/backend/internal/handler/api"
+	"github.com/tamaco489/realtime-event-platform/backend/internal/library/auth"
 	"github.com/tamaco489/realtime-event-platform/backend/internal/library/config"
 	"github.com/tamaco489/realtime-event-platform/backend/internal/library/producer"
 )
@@ -23,8 +24,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	var v auth.Verifier
+	// ローカル環境では JWT 検証をスキップ
+	if !cfg.App.Env.IsLocal() {
+		v = auth.NewVerifier(cfg.Auth.Region, cfg.Auth.UserPoolID)
+	}
+
 	mux := http.NewServeMux()
-	mux.Handle("POST /v1/tickets/orders", api.NewHandler(p))
+	mux.Handle("POST /v1/tickets/orders", api.NewHandler(p, v, cfg.App.Env.IsLocal()))
 
 	log.Printf("service=%s started on :%s", cfg.App.ServiceName, cfg.App.Port)
 
@@ -37,7 +44,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
