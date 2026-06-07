@@ -26,7 +26,6 @@ export class CloudFrontS3 extends Construct {
   /** CloudFront ディストリビューション */
   readonly distribution: cloudfront.Distribution;
 
-  // コンストラクタ
   constructor(scope: Construct, id: string, props: CloudFrontS3Props) {
     super(scope, id);
 

@@ -11,7 +11,7 @@ Eliminates polling by delivering real-time push notifications to the frontend vi
 
 ## Architecture
 
-![Architecture](architecture-v1.svg)
+![Architecture](architecture-v2.svg)
 
 ---
 

@@ -4,6 +4,7 @@ import { Construct } from "constructs";
 import { EnvConfig } from "../../config/env-config";
 import { ApiLambda } from "../constructs/api-lambda";
 import { AppSyncApi } from "../constructs/appsync-api";
+import { AppSyncAuthorizer } from "../constructs/appsync-authorizer";
 import { CloudFrontS3 } from "../constructs/cloudfront-s3";
 import { Cognito } from "../constructs/cognito";
 import { DynamoDbTable } from "../constructs/dynamodb-table";
@@ -13,7 +14,7 @@ import { SqsQueue } from "../constructs/sqs-queue";
 /**
  * RealtimeEventStack のコンストラクタプロパティ
  *
- * @property config - 環境設定。envName / bootstrapQualifier / lambdaMemorySize 等を保持する
+ * @property config - 環境設定。詳細は {@link EnvConfig} を参照
  */
 interface RealtimeEventStackProps extends cdk.StackProps {
   readonly config: EnvConfig;
@@ -22,8 +23,8 @@ interface RealtimeEventStackProps extends cdk.StackProps {
 /**
  * リアルタイムイベント配信プラットフォームのメインスタック
  *
- * 本番移行時に stateful (DynamoDB / SQS) と stateless (Lambda / AppSync) に分割する。
  * 各リソースは lib/constructs/ 配下の L3 カスタムコンストラクトに分割して組み立てる。
+ * 将来的に stateful (DynamoDB / SQS) と stateless (Lambda / AppSync) の 2 スタックに分割する予定。
  */
 export class RealtimeEventStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RealtimeEventStackProps) {
@@ -33,8 +34,16 @@ export class RealtimeEventStack extends cdk.Stack {
       envName: props.config.envName,
     });
 
+    const authorizer = new AppSyncAuthorizer(this, "AppSyncAuthorizer", {
+      envName: props.config.envName,
+      userPool: cognito.userPool,
+      lambdaMemorySize: props.config.lambdaMemorySize,
+      artifactsBucketName: props.config.artifactsBucketName,
+    });
+
     const appSyncApi = new AppSyncApi(this, "AppSyncApi", {
       envName: props.config.envName,
+      authorizerFn: authorizer.fn,
     });
 
     const sqsQueue = new SqsQueue(this, "SqsQueue", {
@@ -54,17 +63,18 @@ export class RealtimeEventStack extends cdk.Stack {
       artifactsBucketName: props.config.artifactsBucketName,
     });
 
-    new EventLambda(this, "EventLambda", {
+    const eventLambda = new EventLambda(this, "EventLambda", {
       envName: props.config.envName,
       queue: sqsQueue.queue,
       table: dynamoDbTable.table,
-      channelNamespace: appSyncApi.channelNamespace,
       appSyncUrl: `https://${appSyncApi.api.httpDns}`,
       appSyncChannel: "tickets/orders",
-      appSyncApiKey: appSyncApi.api.apiKeys["Default"].attrApiKey,
       lambdaMemorySize: props.config.lambdaMemorySize,
       artifactsBucketName: props.config.artifactsBucketName,
     });
+
+    // Event Lambda の実行ロールに AppSync への Publish 権限を付与する
+    appSyncApi.api.grantPublish(eventLambda.fn);
 
     new CloudFrontS3(this, "CloudFrontS3", {
       envName: props.config.envName,
