@@ -12,7 +12,7 @@ type mockStore struct {
 	err error
 }
 
-func (m *mockStore) PutEvent(_ context.Context, _ string, _ map[string]any) error {
+func (m *mockStore) PutEvent(_ context.Context, _, _, _, _ string, _ map[string]any) error {
 	return m.err
 }
 
@@ -20,7 +20,7 @@ type mockNotifier struct {
 	err error
 }
 
-func (m *mockNotifier) PublishEvent(_ context.Context, _ string, _ map[string]any) error {
+func (m *mockNotifier) PublishEvent(_ context.Context, _ string, _ map[string]any, _, _ string) error {
 	return m.err
 }
 
@@ -34,19 +34,27 @@ func TestHandler_Handle(t *testing.T) {
 		wantFailureIDs []string
 	}{
 		"正常系_有効なレコードを処理できる": {
-			body: `{"event_type":"user.created","payload":{"user_id":"u-001"}}`,
+			body: `{"event_type":"tickets.ordered","tenant_id":"tenant-xxx01","user_id":"user-001","payload":{"event_id":"evt-001"}}`,
 		},
 		"異常系_不正な_JSON_は_BatchItemFailures_に積まれる": {
 			body:           `{ invalid }`,
 			wantFailureIDs: []string{"test-id"},
 		},
+		"異常系_tenant_id_が空は_BatchItemFailures_に積まれる": {
+			body:           `{"event_type":"tickets.ordered","tenant_id":"","user_id":"user-001","payload":{}}`,
+			wantFailureIDs: []string{"test-id"},
+		},
+		"異常系_user_id_が空は_BatchItemFailures_に積まれる": {
+			body:           `{"event_type":"tickets.ordered","tenant_id":"tenant-xxx01","user_id":"","payload":{}}`,
+			wantFailureIDs: []string{"test-id"},
+		},
 		"異常系_store_エラーは_BatchItemFailures_に積まれる": {
-			body:           `{"event_type":"user.created","payload":{}}`,
+			body:           `{"event_type":"tickets.ordered","tenant_id":"tenant-xxx01","user_id":"user-001","payload":{}}`,
 			storeErr:       errors.New("dynamodb error"),
 			wantFailureIDs: []string{"test-id"},
 		},
 		"異常系_notifier_エラーは_BatchItemFailures_に積まれる": {
-			body:           `{"event_type":"user.created","payload":{}}`,
+			body:           `{"event_type":"tickets.ordered","tenant_id":"tenant-xxx01","user_id":"user-001","payload":{}}`,
 			notifierErr:    errors.New("appsync error"),
 			wantFailureIDs: []string{"test-id"},
 		},

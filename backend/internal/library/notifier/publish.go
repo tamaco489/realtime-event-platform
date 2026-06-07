@@ -3,31 +3,42 @@ package notifier
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
+// eventsRequest は AppSync Events HTTP Publish API のリクエストボディ
 type eventsRequest struct {
-	Channel string   `json:"channel"`
-	Events  []string `json:"events"`
+	// Channel は Publish 先のチャンネルパス
+	Channel string `json:"channel"`
+	// Events は Publish するイベントの JSON 文字列リスト
+	Events []string `json:"events"`
 }
 
+// eventData は AppSync に Publish するイベントの本体
 type eventData struct {
-	Payload   map[string]any `json:"payload"`
-	EventType string         `json:"event_type"`
+	// Payload はイベント固有のデータ
+	Payload map[string]any `json:"payload"`
+	// EventType はイベントの種別名
+	EventType string `json:"event_type"`
 }
 
-func (n *notifier) PublishEvent(ctx context.Context, eventType string, payload map[string]any) error {
+// PublishEvent は指定テナント・ユーザーのチャンネルにイベントを Publish する
+func (n *notifier) PublishEvent(ctx context.Context, eventType string, payload map[string]any, tenantID, userID string) error {
 	edJSON, err := json.Marshal(eventData{EventType: eventType, Payload: payload})
 	if err != nil {
 		return fmt.Errorf("appsync: failed to marshal event: %w", err)
 	}
 
+	channel := n.channel + "/" + tenantID + "/" + userID
 	body, err := json.Marshal(eventsRequest{
-		Channel: n.channel,
+		Channel: channel,
 		Events:  []string{string(edJSON)},
 	})
 	if err != nil {
@@ -40,7 +51,15 @@ func (n *notifier) PublishEvent(ctx context.Context, eventType string, payload m
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-api-key", n.apiKey)
+
+	creds, err := n.creds.Retrieve(ctx)
+	if err != nil {
+		return fmt.Errorf("appsync: failed to retrieve credentials: %w", err)
+	}
+	hash := sha256.Sum256(body)
+	if err = n.signer.SignHTTP(ctx, creds, req, hex.EncodeToString(hash[:]), "appsync", n.region, time.Now()); err != nil {
+		return fmt.Errorf("appsync: failed to sign request: %w", err)
+	}
 
 	resp, err := n.client.Do(req)
 	if err != nil {
