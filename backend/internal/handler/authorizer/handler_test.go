@@ -14,10 +14,10 @@ func TestHandler_Handle(t *testing.T) {
 	validClaims := &auth.Claims{TenantID: "tenant-abc", UserID: "user-123"}
 
 	tests := map[string]struct {
-		token       string
-		channel     string
 		mockClaims  *auth.Claims
 		mockAuthErr error
+		token       string
+		channel     string
 		wantAuth    bool
 		wantTTL     int
 	}{
