@@ -5,6 +5,7 @@ import { EnvConfig } from "../../config/env-config";
 import { ApiLambda } from "../constructs/api-lambda";
 import { AppSyncApi } from "../constructs/appsync-api";
 import { CloudFrontS3 } from "../constructs/cloudfront-s3";
+import { Cognito } from "../constructs/cognito";
 import { DynamoDbTable } from "../constructs/dynamodb-table";
 import { EventLambda } from "../constructs/event-lambda";
 import { SqsQueue } from "../constructs/sqs-queue";
@@ -28,6 +29,10 @@ export class RealtimeEventStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RealtimeEventStackProps) {
     super(scope, id, props);
 
+    const cognito = new Cognito(this, "Cognito", {
+      envName: props.config.envName,
+    });
+
     const appSyncApi = new AppSyncApi(this, "AppSyncApi", {
       envName: props.config.envName,
     });
@@ -43,6 +48,8 @@ export class RealtimeEventStack extends cdk.Stack {
     new ApiLambda(this, "ApiLambda", {
       envName: props.config.envName,
       queue: sqsQueue.queue,
+      cognitoUserPoolId: cognito.userPool.userPoolId,
+      cognitoRegion: this.region,
       lambdaMemorySize: props.config.lambdaMemorySize,
       artifactsBucketName: props.config.artifactsBucketName,
     });

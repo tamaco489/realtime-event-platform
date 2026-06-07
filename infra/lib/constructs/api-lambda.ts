@@ -13,12 +13,16 @@ import { Construct } from "constructs";
  *
  * @property envName - 環境名。リソースの命名に使用する
  * @property queue - SQS メインキュー。Lambda 環境変数と SendMessage 権限付与に使用する
+ * @property cognitoUserPoolId - Cognito User Pool ID。JWT 署名検証の JWKS エンドポイント生成に使用する
+ * @property cognitoRegion - Cognito User Pool が存在する AWS リージョン
  * @property lambdaMemorySize - Lambda 関数のメモリサイズ (MB)
  * @property artifactsBucketName - Lambda ビルド成果物を格納する S3 バケット名
  */
 interface ApiLambdaProps {
   readonly envName: string;
   readonly queue: sqs.Queue;
+  readonly cognitoUserPoolId: string;
+  readonly cognitoRegion: string;
   readonly lambdaMemorySize: number;
   readonly artifactsBucketName: string;
 }
@@ -89,6 +93,8 @@ export class ApiLambda extends Construct {
         APP_PORT: "8080",
         API_SERVICE_NAME: `${props.envName}-realtime-event-api`,
         SQS_QUEUE_URL: props.queue.queueUrl,
+        COGNITO_USER_POOL_ID: props.cognitoUserPoolId,
+        COGNITO_REGION: props.cognitoRegion,
       },
     });
 
