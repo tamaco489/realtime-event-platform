@@ -3,3 +3,6 @@
 
 # Playwright MCP session cache
 .playwright-mcp/
+
+# Temporary files
+tmp/
