@@ -24,6 +24,8 @@ import { EnvConfig } from "../../config/env-config"; // 3. 内部モジュール
 
 ### インターフェース / 型
 
+プロパティの説明は `@property` タグをブロック JSDoc にまとめる。インラインコメント (`/** */`) はプロパティに付けない。
+
 ```ts
 /**
  * AppSyncApi コンストラクタプロパティ
@@ -32,6 +34,23 @@ import { EnvConfig } from "../../config/env-config"; // 3. 内部モジュール
  */
 interface AppSyncApiProps {
   readonly envName: string;
+}
+```
+
+補足が必要なプロパティは `@property` の説明に組み込む。
+
+```ts
+/**
+ * サインアップフォームの入力値
+ *
+ * @property email - メールアドレス
+ * @property password - パスワード (12 文字以上、大小英字・数字・記号を含む)
+ * @property code - Cognito から届いたメール確認コード。"confirm" step でのみ使用する
+ */
+interface SignUpFormState {
+  email: string;
+  password: string;
+  code: string;
 }
 ```
 
@@ -75,6 +94,21 @@ export interface EnvConfig {
 | `@property propName - 説明` | インターフェースプロパティの説明 (クラス JSDoc 内で使う場合) |
 | `@example`                  | 使用例のコードブロック                                       |
 | `@see {@link URL テキスト}` | 関連リンクの参照                                             |
+
+## React イベント型
+
+React 19 で `FormEvent` / `FormEventHandler` は deprecated になった (`FormEvent doesn't actually exist.`)。
+`onSubmit` には `React.SubmitEvent<T>` を使用する。
+
+```ts
+// NG: deprecated
+import type { FormEvent } from "react";
+async function handleSubmit(e: FormEvent<HTMLFormElement>) { ... }
+
+// OK
+import React, { useState } from "react";
+async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) { ... }
+```
 
 ## その他
 
