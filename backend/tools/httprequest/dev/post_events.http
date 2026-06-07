@@ -1,52 +1,60 @@
 @baseUrl = http://localhost:18080
 
 ###
-# POST /events — 正常系: 標準的なイベント送信
-POST {{baseUrl}}/events
+# POST /v1/tickets/orders — 正常系: general 席
+POST {{baseUrl}}/v1/tickets/orders
 Content-Type: application/json
 
 {
-  "event_type": "test",
-  "payload": {
-    "message": "test"
-  }
+  "event_id": "evt-001",
+  "event_name": "技術カンファレンス 2026",
+  "seat_type": "general",
+  "quantity": 2,
+  "amount": 10000
 }
 
 ###
-# POST /events — 正常系: payload にデータを含む
-POST {{baseUrl}}/events
+# POST /v1/tickets/orders — 正常系: vip 席
+POST {{baseUrl}}/v1/tickets/orders
 Content-Type: application/json
 
 {
-  "event_type": "user.created",
-  "payload": {
-    "user_id": "u-001",
-    "name": "tamaco"
-  }
+  "event_id": "evt-002",
+  "event_name": "音楽フェス 2026",
+  "seat_type": "vip",
+  "quantity": 1,
+  "amount": 30000
 }
 
 ###
-# POST /events — 異常系: event_type が空
-POST {{baseUrl}}/events
+# POST /v1/tickets/orders — 異常系: event_id が空
+POST {{baseUrl}}/v1/tickets/orders
 Content-Type: application/json
 
 {
-  "event_type": "",
-  "payload": {}
+  "event_id": "",
+  "event_name": "技術カンファレンス 2026",
+  "seat_type": "general",
+  "quantity": 1,
+  "amount": 5000
 }
 
 ###
-# POST /events — 異常系: event_type が欠落
-POST {{baseUrl}}/events
+# POST /v1/tickets/orders — 異常系: quantity が 0
+POST {{baseUrl}}/v1/tickets/orders
 Content-Type: application/json
 
 {
-  "payload": {}
+  "event_id": "evt-001",
+  "event_name": "技術カンファレンス 2026",
+  "seat_type": "general",
+  "quantity": 0,
+  "amount": 5000
 }
 
 ###
-# POST /events — 異常系: 不正な JSON ボディ
-POST {{baseUrl}}/events
+# POST /v1/tickets/orders — 異常系: 不正な JSON ボディ
+POST {{baseUrl}}/v1/tickets/orders
 Content-Type: application/json
 
 { invalid json }
