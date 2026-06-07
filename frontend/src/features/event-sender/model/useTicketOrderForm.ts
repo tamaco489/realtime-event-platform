@@ -1,11 +1,19 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
+import React, { useState } from "react";
 
 import { postTicketOrder } from "@features/event-sender/api";
 
 export const SEAT_TYPES = ["general", "vip", "premium"] as const;
 export type SeatType = (typeof SEAT_TYPES)[number];
 
+/**
+ * チケット注文フォームの入力値
+ *
+ * @property eventId - イベント ID
+ * @property eventName - イベント名
+ * @property seatType - 席種 (general / vip / premium)
+ * @property quantity - 枚数
+ * @property amount - 合計金額 (円)
+ */
 interface FormState {
   eventId: string;
   eventName: string;
@@ -14,6 +22,7 @@ interface FormState {
   amount: number;
 }
 
+/** フォームの初期値。送信成功後のリセット時にも使用する */
 const DEFAULT_FORM: FormState = {
   eventId: "evt-001",
   eventName: "技術カンファレンス 2026",
@@ -40,7 +49,7 @@ export function useTicketOrderForm() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setLoading(true);
