@@ -53,7 +53,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.EventID == "" || req.EventName == "" || req.SeatType == "" {
+	if strings.TrimSpace(req.EventID) == "" || strings.TrimSpace(req.EventName) == "" || req.SeatType == "" {
 		writeJSONError(w, "event_id, event_name and seat_type are required", http.StatusBadRequest)
 		return
 	}
@@ -93,7 +93,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // authenticate はローカル環境では固定クレームを返す。本番環境では JWT を検証する。
 func (h *Handler) authenticate(w http.ResponseWriter, r *http.Request) (*auth.Claims, bool) {
 	if h.isLocal {
-		return &auth.Claims{TenantID: "tenant-xxx01", UserID: "local-user-id"}, true
+		return &auth.Claims{
+			TenantID: "1234",
+			UserID:   "00000000-0000-4000-a000-000000000001",
+		}, true
 	}
 
 	authHeader := r.Header.Get("Authorization")
