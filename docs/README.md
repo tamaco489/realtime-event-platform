@@ -40,11 +40,15 @@ realtime-event-platform/
 ├── backend/                     # Go Lambda — unified module
 │   ├── cmd/
 │   │   ├── api/main.go          # API Lambda entrypoint
-│   │   └── event/main.go        # Event Lambda entrypoint
+│   │   ├── event/main.go        # Event Lambda entrypoint
+│   │   ├── presignup/main.go    # Pre Sign-up Lambda entrypoint
+│   │   └── authorizer/main.go   # AppSync Authorizer Lambda entrypoint
 │   ├── internal/
 │   │   ├── handler/
 │   │   │   ├── api/             # REST handler → producer
-│   │   │   └── event/           # SQS handler → notifier
+│   │   │   ├── event/           # SQS handler → notifier
+│   │   │   ├── presignup/       # Cognito Pre Sign-up trigger → tenant validation
+│   │   │   └── authorizer/      # AppSync Lambda Authorizer → JWT verification
 │   │   └── library/
 │   │       ├── config/          # Environment config
 │   │       ├── producer/        # SQS SendMessage client
@@ -171,7 +175,9 @@ S3 upload paths:
 {ENV}-realtime-event-storage/
   └── artifacts/
       ├── api/bootstrap.zip
-      └── event/bootstrap.zip
+      ├── event/bootstrap.zip
+      ├── presignup/bootstrap.zip
+      └── authorizer/bootstrap.zip
 ```
 
 ### Frontend (S3 + CloudFront)
