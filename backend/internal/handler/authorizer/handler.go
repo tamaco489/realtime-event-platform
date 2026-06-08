@@ -47,7 +47,8 @@ type requestContext struct {
 
 // Handle は AppSync Events Lambda Authorizer のエントリポイント
 //   - クライアントが WebSocket で Subscribe する際に AppSync から呼び出され、チャンネルへのアクセス可否を判定。
-//   - JWT を Cognito JWKS で検証し、チャンネルパスの tenantId, userId と claims を照合する。
+//   - EventConnect: JWT 検証のみ。Channel は空文字のため照合をスキップする。
+//   - EventSubscribe: JWT 検証後、チャンネルパスの tenantId, userId と claims を照合する。
 //   - 承認時は TTLOverride: 300 (5 分) でキャッシュする。
 func (h *Handler) Handle(ctx context.Context, req Request) (Response, error) {
 	token := strings.TrimPrefix(req.AuthorizationToken, "Bearer ")
@@ -58,6 +59,14 @@ func (h *Handler) Handle(ctx context.Context, req Request) (Response, error) {
 		return Response{
 			IsAuthorized: false,
 			TTLOverride:  0,
+		}, nil
+	}
+
+	// CONNECT フェーズは Channel が空文字。JWT 検証のみで承認する
+	if req.RequestContext.Operation == "EVENT_CONNECT" {
+		return Response{
+			IsAuthorized: true,
+			TTLOverride:  authzCacheTTLSec,
 		}, nil
 	}
 

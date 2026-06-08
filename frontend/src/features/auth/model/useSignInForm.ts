@@ -39,6 +39,18 @@ export function useSignInForm(onSignedIn: () => void) {
       // サインイン完了後のコールバックを呼び出す (例: サインイン画面を閉じる)
       onSignedIn();
     } catch (err) {
+      // ページリロード後に Amplify の localStorage セッションが残っている場合、
+      // signIn が失敗するため既存セッションからクレームを取得してサインイン状態にする
+      if (err instanceof Error && err.message.includes("There is already a signed in user")) {
+        try {
+          const claims = await getAuthClaims();
+          setAuth(claims.tenantId, claims.userId);
+          onSignedIn();
+          return;
+        } catch {
+          // フォールスルー: 通常のエラー処理へ
+        }
+      }
       setError(err instanceof Error ? err.message : "サインインに失敗しました");
     } finally {
       setLoading(false);
