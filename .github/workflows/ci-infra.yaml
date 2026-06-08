@@ -5,12 +5,12 @@ on:
     branches: [main]
     paths:
       - "infra/**"
-      - ".github/workflows/ci-infra.yml"
+      - ".github/workflows/ci-infra.yaml"
   pull_request:
     branches: [main]
     paths:
       - "infra/**"
-      - ".github/workflows/ci-infra.yml"
+      - ".github/workflows/ci-infra.yaml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

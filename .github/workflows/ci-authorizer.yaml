@@ -1,28 +1,18 @@
-name: CI - Event
+name: CI - Authorizer
 
 on:
   push:
     branches: [main]
     paths:
-      - "backend/cmd/event/**"
-      - "backend/internal/handler/event/**"
-      - "backend/internal/library/**"
-      - "backend/go.mod"
-      - "backend/go.sum"
-      - "backend/Makefile"
-      - "backend/.golangci.yml"
-      - ".github/workflows/ci-event.yml"
+      - "backend/cmd/authorizer/**"
+      - "backend/internal/handler/authorizer/**"
+      - ".github/workflows/ci-authorizer.yaml"
   pull_request:
     branches: [main]
     paths:
-      - "backend/cmd/event/**"
-      - "backend/internal/handler/event/**"
-      - "backend/internal/library/**"
-      - "backend/go.mod"
-      - "backend/go.sum"
-      - "backend/Makefile"
-      - "backend/.golangci.yml"
-      - ".github/workflows/ci-event.yml"
+      - "backend/cmd/authorizer/**"
+      - "backend/internal/handler/authorizer/**"
+      - ".github/workflows/ci-authorizer.yaml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
