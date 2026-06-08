@@ -9,6 +9,7 @@ import { CloudFrontS3 } from "../constructs/cloudfront-s3";
 import { Cognito } from "../constructs/cognito";
 import { DynamoDbTable } from "../constructs/dynamodb-table";
 import { EventLambda } from "../constructs/event-lambda";
+import { PreSignupLambda } from "../constructs/presignup-lambda";
 import { SqsQueue } from "../constructs/sqs-queue";
 
 /**
@@ -30,8 +31,15 @@ export class RealtimeEventStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RealtimeEventStackProps) {
     super(scope, id, props);
 
+    const presignup = new PreSignupLambda(this, "PreSignupLambda", {
+      envName: props.config.envName,
+      lambdaMemorySize: props.config.lambdaMemorySize,
+      artifactsBucketName: props.config.artifactsBucketName,
+    });
+
     const cognito = new Cognito(this, "Cognito", {
       envName: props.config.envName,
+      preSignUpFn: presignup.fn,
     });
 
     const authorizer = new AppSyncAuthorizer(this, "AppSyncAuthorizer", {

@@ -1,14 +1,17 @@
 import * as cdk from "aws-cdk-lib";
 import * as cognito from "aws-cdk-lib/aws-cognito";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 
 /**
  * Cognito コンストラクタプロパティ
  *
  * @property envName - 環境名。リソースの命名に使用する
+ * @property preSignUpFn - Pre Sign-up Lambda 関数。サインアップ時のテナント照合に使用する
  */
 interface CognitoProps {
   readonly envName: string;
+  readonly preSignUpFn: lambda.Function;
 }
 
 /**
@@ -30,13 +33,14 @@ export class Cognito extends Construct {
     // User Pool - ユーザーの認証基盤となる User Pool を作成
     this.userPool = new cognito.UserPool(this, "UserPool", {
       userPoolName: `${props.envName}-realtime-event-user-pool`,
-      /* TODO(#113) selfSignUpEnabled について:
-        - DOC: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_cognito.UserPool.html
-        - Pre Sign-up Lambda 実装後に完全に機能する
-        - ユーザーはサインアップ時にテナント ID + 企業名を入力し、Lambda がテナント定義と照合して検証する
-        - 管理者が AdminUpdateUserAttributes で custom:tenantId を付与するまで JWT に tenantId が含まれず BE-001 の JWT 検証で 403 になるため、ユーザーはサービスを利用できない状態になる
-      */
+
+      // ユーザーが自己サインアップできるようにする。テナント照合は Pre Sign-up Lambda に委譲する
       selfSignUpEnabled: true,
+
+      // サインアップ前に Pre Sign-up Lambda でテナント ID と企業名を照合する
+      lambdaTriggers: {
+        preSignUp: props.preSignUpFn,
+      },
 
       // メールは大小文字区別しない
       signInCaseSensitive: false,
