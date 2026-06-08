@@ -690,6 +690,14 @@ exports[`snapshot 1`] = `
         ],
         "EmailVerificationMessage": "The verification code to your new account is {####}",
         "EmailVerificationSubject": "Verify your new account",
+        "LambdaConfig": {
+          "PreSignUp": {
+            "Fn::GetAtt": [
+              "PreSignupLambdaFunction2F1753F3",
+              "Arn",
+            ],
+          },
+        },
         "Policies": {
           "PasswordPolicy": {
             "MinimumLength": 12,
@@ -726,6 +734,25 @@ exports[`snapshot 1`] = `
       },
       "Type": "AWS::Cognito::UserPool",
       "UpdateReplacePolicy": "Delete",
+    },
+    "CognitoUserPoolPreSignUpCognitoD07EA58F": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "PreSignupLambdaFunction2F1753F3",
+            "Arn",
+          ],
+        },
+        "Principal": "cognito-idp.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "CognitoUserPool279BBD48",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "CognitoUserPoolUserPoolClient1E6BF456": {
       "Properties": {
@@ -1049,6 +1076,84 @@ exports[`snapshot 1`] = `
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "PreSignupLambdaFunction2F1753F3": {
+      "DependsOn": [
+        "PreSignupLambdaRole5234B715",
+      ],
+      "Properties": {
+        "Architectures": [
+          "arm64",
+        ],
+        "Code": {
+          "S3Bucket": "dev-realtime-event-storage",
+          "S3Key": "artifacts/presignup/bootstrap.zip",
+        },
+        "Description": "Cognito Pre Sign-up trigger — validates tenantId and companyName against hardcoded tenant definitions",
+        "FunctionName": "dev-realtime-event-presignup",
+        "Handler": "bootstrap",
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "PreSignupLambdaRole5234B715",
+            "Arn",
+          ],
+        },
+        "Runtime": "provided.al2023",
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "PreSignupLambdaFunctionLogGroup6088F41A": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "PreSignupLambdaFunction2F1753F3",
+              },
+            ],
+          ],
+        },
+        "RetentionInDays": 7,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "PreSignupLambdaRole5234B715": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "RoleName": "dev-realtime-event-presignup-role",
+      },
+      "Type": "AWS::IAM::Role",
     },
     "SqsQueueB359A2D7": {
       "DeletionPolicy": "Delete",
