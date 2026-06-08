@@ -11,7 +11,10 @@ import (
 func TestHandler_Handle(t *testing.T) {
 	t.Parallel()
 
-	validClaims := &auth.Claims{TenantID: "tenant-abc", UserID: "user-123"}
+	validClaims := &auth.Claims{
+		TenantID: "tenant-abc",
+		UserID:   "user-123",
+	}
 
 	tests := map[string]struct {
 		mockClaims  *auth.Claims
@@ -53,6 +56,20 @@ func TestHandler_Handle(t *testing.T) {
 			token:      "Bearer valid.token.here",
 			channel:    "/tickets/orders/tenant-abc/other-user",
 			mockClaims: validClaims,
+			wantAuth:   false,
+			wantTTL:    0,
+		},
+		"異常系_claims_の_tenantId_が空の場合は_isAuthorized_false_を返す": {
+			token:      "Bearer valid.token.here",
+			channel:    "/tickets/orders/tenant-abc/user-123",
+			mockClaims: &auth.Claims{TenantID: "", UserID: "user-123"},
+			wantAuth:   false,
+			wantTTL:    0,
+		},
+		"異常系_claims_の_userId_が空の場合は_isAuthorized_false_を返す": {
+			token:      "Bearer valid.token.here",
+			channel:    "/tickets/orders/tenant-abc/user-123",
+			mockClaims: &auth.Claims{TenantID: "tenant-abc", UserID: ""},
 			wantAuth:   false,
 			wantTTL:    0,
 		},
