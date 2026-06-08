@@ -93,7 +93,7 @@ deploy-event: upload-event
 
 deploy-authorizer: upload-authorizer
 	aws lambda update-function-code \
-		--function-name $(ENV)-realtime-event-authorizer \
+		--function-name $(ENV)-realtime-event-appsync-authorizer \
 		--s3-bucket $(S3_BUCKET) \
 		--s3-key artifacts/authorizer/bootstrap.zip \
 		--profile $(AWS_PROFILE) | jq .

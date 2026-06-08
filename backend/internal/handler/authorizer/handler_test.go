@@ -20,54 +20,78 @@ func TestHandler_Handle(t *testing.T) {
 		mockClaims  *auth.Claims
 		mockAuthErr error
 		token       string
+		operation   string
 		channel     string
 		wantAuth    bool
 		wantTTL     int
 	}{
-		"正常系_有効な_JWT_でチャンネルアクセスを承認する": {
+		"正常系_EventConnect_で有効な_JWT_なら承認する": {
 			token:      "Bearer valid.token.here",
+			operation:  "EVENT_CONNECT",
+			channel:    "",
+			mockClaims: validClaims,
+			wantAuth:   true,
+			wantTTL:    authzCacheTTLSec,
+		},
+		"異常系_EventConnect_で_JWT_検証エラーは_isAuthorized_false_を返す": {
+			token:       "Bearer bad.token.here",
+			operation:   "EventConnect",
+			channel:     "",
+			mockAuthErr: errors.New("invalid signature"),
+			wantAuth:    false,
+			wantTTL:     0,
+		},
+		"正常系_EventSubscribe_で有効な_JWT_とチャンネルパスが一致すれば承認する": {
+			token:      "Bearer valid.token.here",
+			operation:  "EVENT_SUBSCRIBE",
 			channel:    "/tickets/orders/tenant-abc/user-123",
 			mockClaims: validClaims,
 			wantAuth:   true,
 			wantTTL:    authzCacheTTLSec,
 		},
-		"異常系_JWT_検証エラーは_isAuthorized_false_を返す": {
+		"異常系_EventSubscribe_で_JWT_検証エラーは_isAuthorized_false_を返す": {
 			token:       "Bearer bad.token.here",
+			operation:   "EventSubscribe",
 			channel:     "/tickets/orders/tenant-abc/user-123",
 			mockAuthErr: errors.New("invalid signature"),
 			wantAuth:    false,
 			wantTTL:     0,
 		},
-		"異常系_チャンネルパスのセグメントが不足している場合は_isAuthorized_false_を返す": {
+		"異常系_EventSubscribe_でチャンネルパスのセグメントが不足している場合は_isAuthorized_false_を返す": {
 			token:      "Bearer valid.token.here",
+			operation:  "EVENT_SUBSCRIBE",
 			channel:    "/tickets/orders/tenant-abc",
 			mockClaims: validClaims,
 			wantAuth:   false,
 			wantTTL:    0,
 		},
-		"異常系_tenantId_不一致は_isAuthorized_false_を返す": {
+		"異常系_EventSubscribe_で_tenantId_不一致は_isAuthorized_false_を返す": {
 			token:      "Bearer valid.token.here",
+			operation:  "EVENT_SUBSCRIBE",
 			channel:    "/tickets/orders/other-tenant/user-123",
 			mockClaims: validClaims,
 			wantAuth:   false,
 			wantTTL:    0,
 		},
-		"異常系_userId_不一致は_isAuthorized_false_を返す": {
+		"異常系_EventSubscribe_で_userId_不一致は_isAuthorized_false_を返す": {
 			token:      "Bearer valid.token.here",
+			operation:  "EVENT_SUBSCRIBE",
 			channel:    "/tickets/orders/tenant-abc/other-user",
 			mockClaims: validClaims,
 			wantAuth:   false,
 			wantTTL:    0,
 		},
-		"異常系_claims_の_tenantId_が空の場合は_isAuthorized_false_を返す": {
+		"異常系_EventSubscribe_で_claims_の_tenantId_が空の場合は_isAuthorized_false_を返す": {
 			token:      "Bearer valid.token.here",
+			operation:  "EVENT_SUBSCRIBE",
 			channel:    "/tickets/orders/tenant-abc/user-123",
 			mockClaims: &auth.Claims{TenantID: "", UserID: "user-123"},
 			wantAuth:   false,
 			wantTTL:    0,
 		},
-		"異常系_claims_の_userId_が空の場合は_isAuthorized_false_を返す": {
+		"異常系_EventSubscribe_で_claims_の_userId_が空の場合は_isAuthorized_false_を返す": {
 			token:      "Bearer valid.token.here",
+			operation:  "EVENT_SUBSCRIBE",
 			channel:    "/tickets/orders/tenant-abc/user-123",
 			mockClaims: &auth.Claims{TenantID: "tenant-abc", UserID: ""},
 			wantAuth:   false,
@@ -83,7 +107,7 @@ func TestHandler_Handle(t *testing.T) {
 			req := Request{
 				AuthorizationToken: tt.token,
 				RequestContext: requestContext{
-					Operation: "EVENT_SUBSCRIBE",
+					Operation: tt.operation,
 					Channel:   tt.channel,
 				},
 			}
