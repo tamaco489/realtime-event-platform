@@ -1,28 +1,18 @@
-name: CI - API
+name: CI - Event
 
 on:
   push:
     branches: [main]
     paths:
-      - "backend/cmd/api/**"
-      - "backend/internal/handler/api/**"
-      - "backend/internal/library/**"
-      - "backend/go.mod"
-      - "backend/go.sum"
-      - "backend/Makefile"
-      - "backend/.golangci.yml"
-      - ".github/workflows/ci-api.yml"
+      - "backend/cmd/event/**"
+      - "backend/internal/handler/event/**"
+      - ".github/workflows/ci-event.yaml"
   pull_request:
     branches: [main]
     paths:
-      - "backend/cmd/api/**"
-      - "backend/internal/handler/api/**"
-      - "backend/internal/library/**"
-      - "backend/go.mod"
-      - "backend/go.sum"
-      - "backend/Makefile"
-      - "backend/.golangci.yml"
-      - ".github/workflows/ci-api.yml"
+      - "backend/cmd/event/**"
+      - "backend/internal/handler/event/**"
+      - ".github/workflows/ci-event.yaml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
