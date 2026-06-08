@@ -17,7 +17,7 @@ func TestHandler_Handle(t *testing.T) {
 	}{
 		"正常系_有効な_tenantId_と_companyName_でサインアップを受け付ける": {
 			validationData: map[string]string{
-				"tenantId":    "tenant-xxx01",
+				"tenantId":    "1234",
 				"companyName": "株式会社サンプルテック",
 			},
 			wantErr:     false,
@@ -25,14 +25,14 @@ func TestHandler_Handle(t *testing.T) {
 		},
 		"異常系_存在しない_tenantId_はサインアップを拒否する": {
 			validationData: map[string]string{
-				"tenantId":    "tenant-unknown",
+				"tenantId":    "0000",
 				"companyName": "株式会社サンプルテック",
 			},
 			wantErr: true,
 		},
 		"異常系_companyName_不一致はサインアップを拒否する": {
 			validationData: map[string]string{
-				"tenantId":    "tenant-xxx01",
+				"tenantId":    "1234",
 				"companyName": "株式会社ダミー",
 			},
 			wantErr: true,
@@ -46,7 +46,7 @@ func TestHandler_Handle(t *testing.T) {
 		},
 		"異常系_companyName_が空の場合はサインアップを拒否する": {
 			validationData: map[string]string{
-				"tenantId":    "tenant-xxx01",
+				"tenantId":    "1234",
 				"companyName": "",
 			},
 			wantErr: true,

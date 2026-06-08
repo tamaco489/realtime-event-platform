@@ -14,8 +14,8 @@ type tenant struct {
 
 // tenants はテナント定義。tenantId をキー、企業名を値として照合する
 var tenants = map[string]tenant{
-	"tenant-xxx01": {companyName: "株式会社サンプルテック"},
-	"tenant-xxx02": {companyName: "合同会社フューチャーワークス"},
+	"1234": {companyName: "株式会社サンプルテック"},
+	"5678": {companyName: "合同会社フューチャーワークス"},
 }
 
 // Handler は Cognito Pre Sign-up Lambda のハンドラ
